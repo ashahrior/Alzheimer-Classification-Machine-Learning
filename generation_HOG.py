@@ -14,6 +14,7 @@ import data_viewer as dv
 import feature_computation_module as fc
 import file_locations_module as flocate 
 
+
 '''
 Select source location of file type to work with. AD / CN / MCI
 '''
@@ -23,7 +24,7 @@ src = flocate.npy_main_MCI + 'data{}.npy'
 
 # location for saving the hog features
 # Remember to handle the print format
-hog_feat_target_location = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogFeat{}_data{}"
+hog_feat_file_path = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogFeat{}_data{}"
 # location for saving the hog images
 # Remember to handle the print format
 hog_img_target_location = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogImg{}_data{}"
@@ -73,8 +74,8 @@ for file_serial in range(from_file, to_file):
     dv.Show(hog_images)
     break
 
-    np.save(hog_feat_target_location.format( case_type, resolution, case_type, file_serial), hog_feats )
-    print(hog_feat_target_location.format( case_type, resolution, case_type, file_serial), "- Saved" )
+    np.save(hog_feat_file_path.format( case_type, resolution, case_type, file_serial), hog_feats )
+    print(hog_feat_file_path.format( case_type, resolution, case_type, file_serial), "- Saved" )
     
     '''
     np.save(hog_img_target_location.format(

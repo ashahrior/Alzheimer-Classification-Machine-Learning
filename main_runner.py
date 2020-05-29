@@ -41,7 +41,7 @@ fglcm.calculate_GLCM_feats(flocate.npy_main_MCI, flocate.glcm_MCI, n=133)
 F = [] #The Total List of the Features
 
 F = fglcm.generate_GLCM_feats_list(flocate.glcm_AD,54,1,F)
-print('AD-GLCM feature stoed.')
+print('AD-GLCM feature stored.')
 
 F = fglcm.generate_GLCM_feats_list(flocate.glcm_CN,115,2,F)
 print('CN-GLCM feature stored.')

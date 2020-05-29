@@ -18,3 +18,5 @@ glcm_CN = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\GLCM_data\CN\\'
 glcm_MCI = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\GLCM_data\MCI\\'
 
 npy_GLCM_feature = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\'
+
+hog_feat_file_form = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogFeat{}_data{}"
