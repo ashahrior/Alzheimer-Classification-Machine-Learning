@@ -10,9 +10,9 @@ from skimage.feature import hog
 from skimage.io import imread, imshow
 from skimage.transform import resize
 
-import data_viewer as dv
-import feature_computation_module as fc
-import file_locations_module as flocate 
+from functional_modules import data_viewer as dv
+from functional_modules import feature_computation_module as fc
+from functional_modules import file_locations_module as flocate 
 
 
 '''
@@ -20,7 +20,7 @@ Select source location of file type to work with. AD / CN / MCI
 '''
 #src = flocate.npy_main_AD + 'data{}.npy'
 #src = flocate.npy_main_CN +  'data{}.npy'
-src = flocate.npy_main_MCI + 'data{}.npy'
+src = flocate.npy_main_MCI_path + 'data{}.npy'
 
 # location for saving the hog features
 # Remember to handle the print format

@@ -1,0 +1,36 @@
+'''
+        for p in penalty:
+            for d in dual:
+                for t in tol:
+                    for fi in fit_intercept:
+                        for s in solver:
+                            for m in multiclass:
+                                for w in warm:
+                                    try:
+                                        iteration += 1
+                                        log_reg_model = LogisticRegression(
+                                            penalty = p, dual = d, tol = t,
+                                            fit_intercept = fi, max_iter= 100,
+                                            random_state=0, solver = s,
+                                            multi_class= m, warm_start= w
+                                        )
+
+                                        log_reg_model.fit(train_X, train_Y)
+                                        res_log_reg = log_reg_model.predict(test_X)
+                                        score_log_reg = accuracy_score(test_Y, res_log_reg)
+                                        print()
+                                        print('Combination Successful!')
+                                        #successful_combos += 1
+                                        successful_combos.append([p,d,t,fi,s,m,w])
+                                        print('Iteration #',iteration,'Log_Reg: Comp:', i+1, ' penalty:', p, ' Dual:', d,
+                                            ' Tol:', t, ' FI:', fi,
+                                            ' solver:', s, ' mulclass:', m,
+                                            ' warmStart:', w,' Score:', score_log_reg)  # Just Printing The information
+                                        if score_log_reg > slg:
+                                            print('New highest accuracy:',score_log_reg,'>',slg)
+                                            slg = score_log_reg
+                                            print()
+                                            time.sleep(3)
+                                    except:
+                                        pass
+        '''

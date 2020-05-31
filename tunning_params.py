@@ -1,15 +1,19 @@
 import numpy as np
+
 from sklearn.decomposition import PCA
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
+
+#from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+
+from sklearn.ensemble import RandomForestClassifier
+
+from sklearn.linear_model import LogisticRegression
+
+from sklearn.neighbors import KNeighborsClassifier
+
 from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
 
 # Applying PCA method. Nothing special here. it returns the Componenets of the features.
 
@@ -34,11 +38,10 @@ all_X = all_feature[:, :777]
 all_Y = all_feature[:, 777]
 
 # Some variables to hold the score ...
-slg = 0  # score of Logistic Regression
-slda = 0  # Linear Discriminant Analysis
+
 skn = 0  # KNeighbours
-sgnb = 0  # GaussianNB
-sdt = 0  # Decision Tree
+
+
 srf = 0  # Random Forest
 ssvm = 0  # Support Vector Machine
 
@@ -50,7 +53,7 @@ for i in range(300):  # For the number of principal Component
     train_X, test_X, train_Y, test_Y = train_test_split(
         all_p_comp, all_Y, test_size=0.3)  # Splitting Train, Test
 
-    # Here is the list of all possible parameter and their values collected from Iternet
+    # Here is the list of all possible parameter and their values collected from Internet
     # A parameter and possible values for LogReg
     penalty = ['l1', 'l2', 'elasticnet', 'none']
     dual = [False, True]
@@ -107,17 +110,7 @@ for i in range(300):  # For the number of principal Component
     the tunning code for the first model.For Simplicity the rest are commented. 
     '''
 
-    '''
-    lda_model = LinearDiscriminantAnalysis(solver='svd',tol=0.001)
-    lda_model.fit(train_X,train_Y)
-    res_lda = lda_model.predict(test_X)
-    score_lda = accuracy_score(test_Y,res_lda)
-    if score_lda > slda:
-        print('LDA : ',i+1,' ',score_lda)
-        slda = score_lda
-        wait = input('Wait for me : ')
-
-
+    ''' 
     kneighbors_model = KNeighborsClassifier(n_neighbors=5,weights='distance',algorithm='auto',p=2)
     kneighbors_model.fit(train_X,train_Y)
     res_kneighbors = kneighbors_model.predict(test_X)
@@ -125,26 +118,6 @@ for i in range(300):  # For the number of principal Component
     if score_kneighbors > skn:
         print('KN : ',i+1,' ',score_kneighbors)
         skn = score_kneighbors
-        wait = input('Wait for me : ')
-
-
-    gaussnb_model = GaussianNB(var_smoothing=0.001)
-    gaussnb_model.fit(train_X,train_Y)
-    res_gaussnb = gaussnb_model.predict(test_X)
-    score_gaussnb = accuracy_score(test_Y,res_gaussnb)
-    if score_gaussnb > sgnb:
-        print('GNB : ',i+1,' ',score_gaussnb)
-        sgnb = score_gaussnb
-        wait = input('Wait for me : ')
-
-
-    dec_tree_model = DecisionTreeClassifier(criterion='gini',splitter='best')
-    dec_tree_model.fit(train_X,train_Y)
-    res_dec_tree = dec_tree_model.predict(test_X)
-    score_dec_tree = accuracy_score(test_Y,res_dec_tree)
-    if score_dec_tree > sdt:
-        print('Dec_Tree : ',i+1,' ',score_dec_tree)
-        sdt = score_dec_tree
         wait = input('Wait for me : ')
 
 

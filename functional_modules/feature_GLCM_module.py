@@ -72,15 +72,6 @@ def generate_GLCM_feats_list(address,number_of_files,target,F):
         var = np.load(address+'variance{}.npy'.format(file_serial),allow_pickle=True)
         print('GLCM retrieved for file #{}  of {} case.'.format(file_serial,case_type))
 
-        '''
-        homo = fc.OpenNpy(address+'homo{}.npy'.format(i),i+1)
-        diss = fc.OpenNpy(address+'diss{}.npy'.format(i),i+1)
-        idm = fc.OpenNpy(address+'idm{}.npy'.format(i),i+1)
-        entr = fc.OpenNpy(address+'entropy{}.npy'.format(i),i+1)
-        brtns = fc.OpenNpy(address+'brtns{}.npy'.format(i),i+1)
-        var = fc.OpenNpy(address+'variance{}.npy'.format(i),i+1)
-        '''
-
         #Creating a row for the data file
         row = []
         slices = 111
