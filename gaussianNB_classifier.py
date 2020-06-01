@@ -102,7 +102,7 @@ def gaussianNB_classifier_func():
     outSheet.write(1, 9, final_row)
     outSheet.write(1, 10, highest_accuracy)
     outSheet.write(1,11, cc)
-    print('Writing highest accuracy for {}'.format(compo+1))
+    print('Writing highest accuracy for {}'.format(cc))
 
     outWorkbook.close()
     print('All done!')

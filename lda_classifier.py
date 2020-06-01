@@ -17,7 +17,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 ####### Main Program .... #####
 
-def lin_disc_classifier_func():
+def lda_classifier_func():
     # Feature of GLCM is Loaded.
     all_GLCM_features = np.load(flocate.GLCM_all_case_feats_file, allow_pickle=True)
 
@@ -118,12 +118,12 @@ def lin_disc_classifier_func():
                     outSheet1.write(line+1, 5, compo+1)
                     print('At line {} writing file for component {}'.format(line+1,compo+1))
                     line+=1
-                    time.sleep(2)
+                    time.sleep(.5)
             except:
                 #print('Combo failed at',c+1)
                 #fail += 1
                 pass
-        time.sleep(2)
+        time.sleep(.5)
         os.system('cls')
     
     outWorkbook.close()
@@ -134,4 +134,4 @@ def lin_disc_classifier_func():
     print(successful_combos)'''
 
 if __name__ == "__main__":
-    lin_disc_classifier_func()
+    lda_classifier_func()

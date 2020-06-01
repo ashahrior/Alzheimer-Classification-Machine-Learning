@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 
 import os
 
-import file_locations_module as flocate
+from functional_modules import file_locations_module as flocate
 
 
 ##### Applying PCA method 

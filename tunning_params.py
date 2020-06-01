@@ -7,11 +7,6 @@ from sklearn.preprocessing import StandardScaler
 
 #from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
-from sklearn.ensemble import RandomForestClassifier
-
-from sklearn.linear_model import LogisticRegression
-
-from sklearn.neighbors import KNeighborsClassifier
 
 from sklearn.svm import SVC
 
@@ -39,11 +34,8 @@ all_Y = all_feature[:, 777]
 
 # Some variables to hold the score ...
 
-skn = 0  # KNeighbours
 
 
-srf = 0  # Random Forest
-ssvm = 0  # Support Vector Machine
 
 # Repeat for different number of Components .
 for i in range(300):  # For the number of principal Component
@@ -111,25 +103,6 @@ for i in range(300):  # For the number of principal Component
     '''
 
     ''' 
-    kneighbors_model = KNeighborsClassifier(n_neighbors=5,weights='distance',algorithm='auto',p=2)
-    kneighbors_model.fit(train_X,train_Y)
-    res_kneighbors = kneighbors_model.predict(test_X)
-    score_kneighbors = accuracy_score(test_Y,res_kneighbors)
-    if score_kneighbors > skn:
-        print('KN : ',i+1,' ',score_kneighbors)
-        skn = score_kneighbors
-        wait = input('Wait for me : ')
-
-
-    ran_forest_model = RandomForestClassifier(n_jobs=2,n_estimators=100,random_state=0)
-    ran_forest_model.fit(train_X,train_Y)
-    res_ran_forest = ran_forest_model.predict(test_X)
-    score_ran_forest = accuracy_score(test_Y,res_ran_forest)
-    if score_ran_forest > srf:
-        print('RanFor : ',i+1,' ',score_ran_forest)
-        srf = score_ran_forest
-        wait = input('Wait for me : ')
-
 
     svm_model = SVC(kernel='rbf',gamma='scale',decision_function_shape='ovo')
     svm_model.fit(train_X,train_Y)

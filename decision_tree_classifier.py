@@ -119,7 +119,7 @@ def decision_tree_classifier_func():
             except:
                 print('Combo failed at', c+1)
                 #fail += 1
-        time.sleep(.5)
+        time.sleep(.3)
 
         os.system('cls')
 
