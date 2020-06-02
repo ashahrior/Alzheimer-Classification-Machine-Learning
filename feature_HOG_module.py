@@ -67,10 +67,12 @@ def merge_HOG_array(totalComp):
     start, end = 60, 70
     start, end = 50, 60
     start, end = 40, 50
-    start, end = 30, 40
-    start, end = 20, 30
     '''
-    start, end = 10, 20
+    start, end = 30, 40
+    
+    #start, end = 20, 30
+    
+    #start, end = 10, 20
     #start, end = 0, 10
     
     for i in range(start, end):
