@@ -15,10 +15,10 @@ style.use('ggplot')
 
 def onclick(event):
     print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-    ('double' if event.dblclick else 'single', event.button,event.x, event.y, event.xdata, event.ydata))
+    ('double' if event.dblclick else 'single', event.button, event.x, event.y, event.xdata, event.ydata))
 
 # %%
-def single_plotter(xl, sheet, type):
+def single_plotter(xl, sheet, typee):
     
     data = pd.read_excel(xl,sheet)
     fig, ax = plt.subplots(2)
@@ -28,7 +28,7 @@ def single_plotter(xl, sheet, type):
     ax[0].scatter(data['COMPONENT-NO.'], data['% ACCURACY'])
     ax[0].set_xlabel('Components')
     ax[0].set_ylabel('Accuracy %')
-    ax[0].set_title(type+'classifier performance on GLCM data')
+    ax[0].set_title(typee + 'classifier performance on GLCM data')
     ax[1].plot(data['COMPONENT-NO.'], data['% ACCURACY'])
     ax[1].set_xlabel('Components')
     ax[1].set_ylabel('Accuracy %')
