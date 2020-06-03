@@ -41,7 +41,7 @@ ax[0].set_ylabel('Accuracy %')
 ax[1].set_xlabel('Components')
 ax[1].set_ylabel('Accuracy %')
 
-ax[0].scatter(xd, yd, alpha=0.5)
+ax[0].scatter(xd, yd, alpha=0.5, s=7)
 ax[1].plot(xd, yd, alpha=0.5)
 
 mplcursors.cursor(hover=True)
