@@ -22,3 +22,6 @@ npy_GLCM_feature_path = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\'
 hog_feat_file_form = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogFeat{}_data{}"
 
 GLCM_all_case_feats_file = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\GLCM_all_cases_1.npy"
+
+HOG_all_case_feats_form = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_merged\HOG_merged_feat{}.npy"
+

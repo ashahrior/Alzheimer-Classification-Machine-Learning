@@ -33,7 +33,6 @@ def generate_HOG_array(case_type, number_of_files, target, no_comp, F):
     for i in range(number_of_files):
         hog_data = np.load(hog_feat_file_form.format(case_type, case_type, i+1), allow_pickle=True)
         print('HOG data for',hog_feat_file_form.format(case_type, case_type, i+1),'loaded.')
-        print()
         
         comp = apply_PCA(hog_data, no_comp)
         print('PCA applied for {} case in file #{} for {} components.'.format(case_type,i+1,no_comp))
@@ -60,18 +59,18 @@ def merge_HOG_array(totalComp):
     n_MCI_file = 133
 
     hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_merged\HOG_merged_feat{}.npy'
-    '''
+    
+    
     start, end = 100, totalComp
-    start, end = 90, 100
-    start, end = 70, 80
-    start, end = 60, 70
-    start, end = 50, 60
-    start, end = 40, 50
-    '''
-    start, end = 30, 40
     
+    #start, end = 90, 100
+    
+    #start, end = 70, 80
+    #start, end = 60, 70
+    #start, end = 50, 60
+    #start, end = 40, 50
+    #start, end = 30, 40
     #start, end = 20, 30
-    
     #start, end = 10, 20
     #start, end = 0, 10
     

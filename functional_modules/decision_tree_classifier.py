@@ -28,8 +28,6 @@ def decision_tree_classifier_func():
     all_X = all_GLCM_features[:, :777]
     all_Y = all_GLCM_features[:, 777]
 
-    # number_principal_components = 300
-
     # A list of all possible parameters and their values collected from sklearn site
     # Paremeters with their possible values for LogReg
     criterion = ['gini', 'entropy']
