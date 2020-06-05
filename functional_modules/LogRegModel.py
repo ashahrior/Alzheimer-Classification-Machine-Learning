@@ -1,7 +1,9 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
-import log_reg_classifier_combos as log_reg_combo
+from functional_modules import log_reg_classifier_combos as log_reg_combo
+
+title = 'LogReg_'
 
 penalty = ['l1', 'l2', 'elasticnet', 'none']
 dual = [False, True]
@@ -19,8 +21,7 @@ parameters_list = [penalty, dual, tol, fit_intercept, solver, multiclass, warm]
 combos = log_reg_combo.logistic_regression_combos
 number_of_combos = len(combos)
 
-headers = ['PENALTY', 'DUAL', 'TOLERANCE', 'FIT_INTERCEPT', 'SOLVER',
-           'MULTICLASS', 'WARM_START', 'BEST_ACCURACY,', 'COMPONENT-NO.']
+headers = ['PENALTY', 'DUAL', 'TOLERANCE', 'FIT_INTERCEPT', 'SOLVER','MULTICLASS', 'WARM_START', 'BEST_ACCURACY,', 'COMPONENT_NO.','%-ACCURACY']
 
 
 def make_model(c, train_X, train_Y, test_X, test_Y):

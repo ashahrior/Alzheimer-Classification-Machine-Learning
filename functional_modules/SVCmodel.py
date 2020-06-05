@@ -9,10 +9,12 @@ decision_function_shape = ['ovo', 'ovr']
 '''
 parameters_list = [['linear', 'poly', 'rbf', 'sigmoid'], ['ovo', 'ovr']]
 
+title = 'SVC_'
+
 combos = [list(x) for x in list(itertools.product(
     *[['linear', 'poly', 'rbf', 'sigmoid'], ['ovo', 'ovr']]))]
 
-headers = ['KERNEL', 'DECISION_FUNC_SHAPE', 'BEST_ACCURACY,', 'COMPONENT-NO.']
+headers = ['KERNEL', 'DECISION_FUNC_SHAPE', 'BEST_ACCURACY,', 'COMPONENT_NO.','%-ACCURACY']
 
 
 def make_model(c, train_X, train_Y, test_X, test_Y):

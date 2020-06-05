@@ -9,8 +9,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from functional_modules import file_locations_module as flocate
-from functional_modules import log_reg_classifier_combos as log_reg_combo
 from functional_modules import pca_module
+from functional_modules import log_reg_classifier_combos
 
 from sklearn.linear_model import LogisticRegression
 
