@@ -2,20 +2,21 @@ import xlsxwriter as xl
 
 import numpy as np
 
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 from functional_modules import HOG_all_cases_feats_form
 from functional_modules import pca_module
+from functional_modules import DTreeModel as dtree
+from functional_modules import GaussianNBmodel as gauss
 
-from functional_modules import DTree_classifier_model
 
-def create_excel(excel_loc,title,header_list):
+
+def create_excel(excel_loc,title,headers):
     outWorkbook = xl.Workbook(excel_loc+title)
     outSheet = outWorkbook.add_worksheet()
     L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    for i in range(len(header_list)):
-        outSheet.write(L[i]+'1',header_list[i])        
+    for i in range(len(headers)):
+        outSheet.write(L[i]+'1',headers[i])
     return outWorkbook, outSheet
 
 
@@ -30,15 +31,15 @@ def prepare_data(data_path):
     return all_X, all_Y
 
 
-def train_model(X, Y, book, sheet, doCompo=False, start=0, finish=1):
+def train_model(classifier, X, Y, book, sheet, doCompo=False, start=0, finish=1):
 
-    combo_list = '' # call function here
+    combo_list = classifier.combos # call function here
     number_of_combos = len(combo_list)
 
     success = 0
     line = 0
 
-    headers = ''
+    headers = classifier.headers
 
     for compo in range(start,finish):
         if doCompo:
@@ -48,10 +49,9 @@ def train_model(X, Y, book, sheet, doCompo=False, start=0, finish=1):
         best_score = 0
         for c in range(number_of_combos):
             try:
-                res_model = 0   # pass train_X, train_Y to function
-                score_model = accuracy_score(test_Y, res_model)
+                score_model = classifier.make_model(c, train_X, train_Y, test_X, test_Y)
                 print('With combo #{} , #{} Combinations Successful!'.format(c+1, success+1))
-                
+                success += 1
                 if score_model > best_score:
                     print('New highest accuracy:', score_model, '>', best_score)
                     best_score = score_model
@@ -60,6 +60,7 @@ def train_model(X, Y, book, sheet, doCompo=False, start=0, finish=1):
                         print('Line #{} --- Component #{}'.format(line+1, compo+1))
             except:
                 print('Combo failed at #',c+1)
+            book.close()
             book.close()
             print('All done.')
     return
@@ -71,6 +72,8 @@ if __name__ == "__main__":
     path = HOG_all_cases_feats_form.format(serial)
 
     X,Y = prepare_data(path)
+
+
 
 
 
