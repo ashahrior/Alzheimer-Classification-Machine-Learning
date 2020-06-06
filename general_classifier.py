@@ -1,4 +1,5 @@
 import xlsxwriter as xl
+import time
 
 import numpy as np
 
@@ -46,7 +47,7 @@ def train_model(classifier, X, Y, book, sheet, serial, line):
     success = 0
 
     headers = classifier.headers
-    print(headers)
+    #print(headers)
 
     '''if tail:
         line = 0'''
@@ -96,24 +97,23 @@ def train_model(classifier, X, Y, book, sheet, serial, line):
 
 if __name__ == "__main__":
 
-    model = dtree
+    #model = dtree
     #model = gauss
-    #model = knbr
+    model = knbr
     #model = lda
     #model = log
     #model = rf
     #model = svc
-
+    
     title = model.title+'_hog'
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\ClassifierResults\hog\\'
     book, sheet = create_excel(excel_loc, title, model)
     line = 1
-    for serial in range(1,111):
+    for serial in range(1,112):
         path = flocate.HOG_all_case_feats_form.format(serial)
         X, Y = prepare_data(path)
         line = train_model(model, X, Y, book, sheet, serial, line)
         print('Serial #', serial, 'done.')
-        input()
     book.close()
 
     #path = flocate.GLCM_all_case_feats_file

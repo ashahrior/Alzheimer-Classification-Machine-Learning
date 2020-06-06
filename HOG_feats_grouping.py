@@ -64,7 +64,7 @@ def merge_HOG_array(totalComp):
     start, end = 100, totalComp
     
     #start, end = 90, 100
-    
+    start, end = 80, 90
     #start, end = 70, 80
     #start, end = 60, 70
     #start, end = 50, 60
