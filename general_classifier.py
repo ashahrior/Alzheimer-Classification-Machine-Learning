@@ -71,7 +71,7 @@ def train_model(classifier, X, Y, book, sheet, serial, line):
             score_model = classifier.make_model(
                 c, train_X, train_Y, test_X, test_Y)
             print(
-                'compo #{} - combo #{} - #{} Combinations Successful!\nScore: {}'.format(serial, c+1, success+1, score_model))
+                'for Compo #{} - Combo #{} - #{} Combos Successful!\nScore: {}'.format(serial, c+1, success+1, score_model))
             success += 1
             if score_model > best_score:
                 print('New highest accuracy:',score_model, '>', best_score)
@@ -87,7 +87,7 @@ def train_model(classifier, X, Y, book, sheet, serial, line):
                 print('Line #{} --- Component #{}'.format(line, serial))
                 line += 1
         except:
-            print('Combo failed at #', c+1)
+            print('Compo #',serial,' - Combo failed at #', c+1)
         print('Exiting combo #', c+1)
         print()
 
@@ -99,32 +99,36 @@ if __name__ == "__main__":
 
     #model = dtree
     #model = gauss
-    model = knbr
-    #model = lda
-    #model = log
-    #model = rf
+    #model = knbr
+    #model = lda    # time consuming - 210 combos
+    #model = log    # time consuming - 336 //924 combos
+    model = rf      # time consuming - 36 combos
     #model = svc
     
     title = model.title+'_hog'
+    print(model.headers)
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\ClassifierResults\hog\\'
     book, sheet = create_excel(excel_loc, title, model)
     line = 1
+    start_time = time.time()
     for serial in range(1,112):
         path = flocate.HOG_all_case_feats_form.format(serial)
         X, Y = prepare_data(path)
         line = train_model(model, X, Y, book, sheet, serial, line)
         print('Serial #', serial, 'done.')
     book.close()
+    print()
+    e = int(time.time() - start_time)
+    print('{:02d}:{:02d}:{:02d}'.format(e // 3600, (e % 3600 // 60), e % 60))
 
     #path = flocate.GLCM_all_case_feats_file
     #title = model.title+'glcm'
 
+
 '''
 steps
 ------
-1. provide path for source file location
-2. prepare data by splitting
-3. provide result storage location and title for excel
-4. create excel
-5. 
+1. create excel
+2. Train, target split
+3. train model
 '''

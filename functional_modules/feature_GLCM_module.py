@@ -1,4 +1,4 @@
-import feature_computation_module as fc
+from functional_modules import feature_computation_module as fc
 import numpy as np
 
 #########################################
@@ -64,12 +64,26 @@ def generate_GLCM_feats_list(address,number_of_files,target,F):
         #Openning the features for a Data File
         print('Accessing data in {} file #{} >>'.format(case_type,file_serial))
         asm = np.load(address+'asm{}.npy'.format(file_serial),allow_pickle=True)
+        #print('ASM for file',file_serial,'done.')
+        
         brtns = np.load(address+'brtns{}.npy'.format(file_serial),allow_pickle=True)
+        #print('Brightness for file',file_serial,'done.')
+        
         diss = np.load(address+'diss{}.npy'.format(file_serial),allow_pickle=True)
+        #print('Dissimilarity for file',file_serial,'done.')
+        
         entr = np.load(address+'entropy{}.npy'.format(file_serial),allow_pickle=True)
+        #print('Entropy for file',file_serial,'done.')
+        
         homo = np.load(address+'homo{}.npy'.format(file_serial),allow_pickle=True)
+        #print('Homogeneity for file',file_serial,'done.')
+        
         idm = np.load(address+'idm{}.npy'.format(file_serial),allow_pickle=True)
+        #print('IDM for file',file_serial,'done.')
+        
         var = np.load(address+'variance{}.npy'.format(file_serial),allow_pickle=True)
+        #print('Variance for file',file_serial,'done.')
+        
         print('GLCM retrieved for file #{}  of {} case.'.format(file_serial,case_type))
 
         #Creating a row for the data file

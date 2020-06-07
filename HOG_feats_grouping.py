@@ -35,7 +35,7 @@ def generate_HOG_array(case_type, number_of_files, target, no_comp, F):
         print('HOG data for',hog_feat_file_form.format(case_type, case_type, i+1),'loaded.')
         
         comp = apply_PCA(hog_data, no_comp)
-        print('PCA applied for {} case in file #{} for {} components.'.format(case_type,i+1,no_comp))
+        print('PCA applied for {} case in file #{} for {} components.'.format(case_type, i+1, no_comp))
         
         row = []
         for j in range(111):

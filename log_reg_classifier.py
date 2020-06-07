@@ -28,23 +28,27 @@ def log_reg_classifier_func():
 
     inner_iter = 0
     # number_principal_components = 300
-    #successful_combos = []
+    successful_combos = []
 
     # A list of all possible parameters and their values collected from sklearn site
     # Paremeters with their possible values for LogReg
 
-    penalty = ['l1', 'l2', 'elasticnet', 'none']
+    #penalty = ['l1', 'l2', 'elasticnet', 'none']
+    penalty = ['l1', 'l2', 'none']
     dual = [False, True]
     tol = [0.1, 0.01, 0.001, 0.0001, 0.2, 0.02, 0.002]
     fit_intercept = [False, True]
     solver = ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga']
-    multiclass = ['auto', 'ovr', 'multinomial']
-    warm = [True, False]
+    #multiclass = ['auto', 'ovr', 'multinomial']
+    multiclass = ['auto', 'ovr']
+    #warm = [True, False]
+    warm = [True]
 
-    parameters_list = [ penalty, dual, tol, fit_intercept, solver, multiclass, warm ]
+    parameters_list = [penalty, dual, tol,
+                       fit_intercept, solver, multiclass, warm]
 
     #combo_list = list(itertools.product(*parameters_list))
-    combo_list = log_reg_combo.logistic_regression_combos
+    combo_list = log_reg_classifier_combos.logistic_regression_combos  # 336 combinations
 
     number_of_combos = len(combo_list)
     # print(number_of_combos)
@@ -54,9 +58,9 @@ def log_reg_classifier_func():
 
     #st, fin = 200, 300
     #st, fin = 100, 200
-    st, fin = 0, 300
+    st, fin = 0, 1
 
-    outWorkbook = xl.Workbook(excel_loc+'log_reg_glcm_pca.xlsx')
+    '''outWorkbook = xl.Workbook(excel_loc+'log_reg_glcm_pca.xlsx')
     outSheet = outWorkbook.add_worksheet()
 
     outSheet.write('A1', 'PENALTY')
@@ -67,7 +71,7 @@ def log_reg_classifier_func():
     outSheet.write('F1', 'MULTICLASS')
     outSheet.write('G1', 'WARM-START')
     outSheet.write('H1', 'BEST ACCURACY')
-    outSheet.write('I1', 'COMPONENT NO.')
+    outSheet.write('I1', 'COMPONENT NO.')'''
 
     line = 0
 
@@ -113,7 +117,7 @@ def log_reg_classifier_func():
                 if score_log_reg > slg:
                     print('New highest accuracy:', score_log_reg, '>', slg)
                     slg = score_log_reg
-                    outSheet.write(line+1, 0, p)
+                    '''outSheet.write(line+1, 0, p)
                     outSheet.write(line+1, 1, d)
                     outSheet.write(line+1, 2, t)
                     outSheet.write(line+1, 3, fi)
@@ -121,17 +125,19 @@ def log_reg_classifier_func():
                     outSheet.write(line+1, 5, m)
                     outSheet.write(line+1, 6, w)
                     outSheet.write(line+1, 7, slg)
-                    outSheet.write(line+1, 8, i+1)
-                    print('Writing file for component {} at line {}'.format(i+1,line+1))
-                    line+=1
-                    time.sleep(.5)
+                    outSheet.write(line+1, 8, i+1)'''
+                    print('Writing file for component {} at line {}'.format(
+                        i+1, line+1))
+                    line += 1
+
                 print()
             except:
                 pass
-        time.sleep(.3)
+
         os.system('cls')
 
-    outWorkbook.close()
+    # outWorkbook.close()
+    os.system('cls')
 
 
 if __name__ == '__main__':
