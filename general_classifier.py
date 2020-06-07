@@ -38,29 +38,22 @@ def prepare_data(data_path):
     return all_X, all_Y
 
 
-def train_model(classifier, X, Y, book, sheet, serial, line):
+def train_model(classifier, X, Y, book, sheet, serial, line, doCompo):
 
     combo_list = classifier.combos  # call function here
     number_of_combos = len(combo_list)
     print('Number of combinations >> ', number_of_combos)
     print()
-    success = 0
 
     headers = classifier.headers
-    #print(headers)
-
-    '''if tail:
-        line = 0'''
-
-    ''' for compo in range(start,finish):
-    print('Component #',compo+1,' complete.')
-    print() '''
 
     print('Processing compo #', serial)
     x = X
-    '''if doCompo:
-        x = pca_module.applyPCA(X, compo+1)
-        print('PCA successfully applied for component #%d' % (compo+1))'''
+    if doCompo:
+        x = pca_module.applyPCA(X, serial)
+        print('PCA successfully applied for component #%d' % (serial+1))
+    
+    success = 0
     best_score = 0
 
     train_X, test_X, train_Y, test_Y = train_test_split(
@@ -94,35 +87,50 @@ def train_model(classifier, X, Y, book, sheet, serial, line):
     print('All done.')
     return line
 
+def classify_glcm(model, book, sheet, limit):
+    glcm54_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\GLCM54feats54.npy"
+    X, Y = prepare_data(glcm54_path)
+    line = 1
+    for serial in range(1,limit):
+        line = train_model(model, X, Y, book, sheet, serial, line, True)
+        print('Serial #', serial, 'done.')
+
+def classify_hog(model, book, sheet, limit):
+    line = 1
+    for serial in range(1,limit):
+        path = flocate.HOG_all_case_feats_form.format(serial)
+        X, Y = prepare_data(path)
+        line = train_model(model, X, Y, book, sheet, serial, line, False)
+        print('Serial #', serial, 'done.')
 
 if __name__ == "__main__":
-
+    start_time = time.time()
     #model = dtree
     #model = gauss
     #model = knbr
     #model = lda    # time consuming - 210 combos
-    #model = log    # time consuming - 336 //924 combos
-    model = rf      # time consuming - 36 combos
+    model = log    # time consuming - 336 //924 combos
+    #model = rf      # time consuming - 36 combos
     #model = svc
     
     title = model.title+'_hog'
     print(model.headers)
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\ClassifierResults\hog\\'
     book, sheet = create_excel(excel_loc, title, model)
-    line = 1
-    start_time = time.time()
-    for serial in range(1,112):
-        path = flocate.HOG_all_case_feats_form.format(serial)
-        X, Y = prepare_data(path)
-        line = train_model(model, X, Y, book, sheet, serial, line)
-        print('Serial #', serial, 'done.')
+
+    limit = 112
+
+    # function for handling glcm
+    classify_glcm(model, book, sheet, limit)
+    # function for handling hog
+    #classify_hog(model, book, sheet, limit)
+    
     book.close()
     print()
+
     e = int(time.time() - start_time)
     print('{:02d}:{:02d}:{:02d}'.format(e // 3600, (e % 3600 // 60), e % 60))
 
-    #path = flocate.GLCM_all_case_feats_file
-    #title = model.title+'glcm'
 
 
 '''
