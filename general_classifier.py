@@ -16,6 +16,7 @@ from functional_modules import LogRegModel as log
 from functional_modules import RandForestModel as rf
 from functional_modules import SVCmodel as svc
 
+
 def create_excel(excel_loc, title, classifier):
     headers = classifier.headers
 
@@ -55,6 +56,7 @@ def train_model(classifier, X, Y, book, sheet, serial, line, doCompo):
     
     success = 0
     best_score = 0
+    fail = 0
 
     train_X, test_X, train_Y, test_Y = train_test_split(
         x, Y, test_size=0.3)
@@ -81,11 +83,17 @@ def train_model(classifier, X, Y, book, sheet, serial, line, doCompo):
                 line += 1
         except:
             print('Compo #',serial,' - Combo failed at #', c+1)
-        print('Exiting combo #', c+1)
+            fail += 1
+        print('Exiting compo #%d - combo #%d'% (serial, c+1))
         print()
 
-    print('All done.')
+    print('Compo %d - all done.'%serial)
+    print('Total combinations: ', number_of_combos)
+    print('Total success: ', success)
+    print('Total failure:', fail)
+    #input('ENTER to continue...')
     return line
+
 
 def classify_glcm(model, book, sheet, limit):
     glcm54_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\GLCM54feats54.npy"
@@ -95,6 +103,7 @@ def classify_glcm(model, book, sheet, limit):
         line = train_model(model, X, Y, book, sheet, serial, line, True)
         print('Serial #', serial, 'done.')
 
+
 def classify_hog(model, book, sheet, limit):
     line = 1
     for serial in range(1,limit):
@@ -103,25 +112,28 @@ def classify_hog(model, book, sheet, limit):
         line = train_model(model, X, Y, book, sheet, serial, line, False)
         print('Serial #', serial, 'done.')
 
+
 if __name__ == "__main__":
     start_time = time.time()
+
     #model = dtree
     #model = gauss
     #model = knbr
     #model = lda    # time consuming - 210 combos
-    model = log    # time consuming - 336 //924 combos
-    #model = rf      # time consuming - 36 combos
+    model = log     # time consuming - 336 //924 combos
+    #model = rf     # time consuming - 36 combos
     #model = svc
     
-    title = model.title+'_hog'
+    title = model.title+'_glcm54_x'
     print(model.headers)
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\ClassifierResults\hog\\'
+    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\excels\\'
     book, sheet = create_excel(excel_loc, title, model)
 
-    limit = 112
+    limit = 161
 
     # function for handling glcm
     classify_glcm(model, book, sheet, limit)
+    
     # function for handling hog
     #classify_hog(model, book, sheet, limit)
     

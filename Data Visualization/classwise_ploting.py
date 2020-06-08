@@ -10,7 +10,7 @@ style.use('ggplot')
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-xl = pd.ExcelFile("E:\\THESIS\\ADNI_data\\ADNI1_Annual_2_Yr_3T_306_WORK\\LogRegClassifier\\all_GLCM_results.xlsx")
+xl = pd.ExcelFile("E:\\THESIS\\ADNI_data\\ADNI1_Annual_2_Yr_3T_306_WORK\\ClassifierResults\\all_GLCM_results.xlsx")
 
 
 dataX = [1,2,3,4,5,6,7]
@@ -24,7 +24,7 @@ for i in range(7):
 accuracies = []
 
 for i in range(len(classifiers)):
-    accuracies.append(list(classifiers[i]['% ACCURACY']*100))
+    accuracies.append(list(classifiers[i]['%-ACCURACY']*100))
 
 n = int(input('Enter component no. >> '))
 
@@ -34,10 +34,12 @@ for i in range(7):
     yd.append(accuracies[i][n-1])
 
 fig, ax = plt.subplots(2)
-ax[0].set_title('classifier performance on GLCM data')
-ax[0].set_xlabel('Components')
 
+ax[0].set_title('classifier performance on GLCM data')
+
+ax[0].set_xlabel('Components')
 ax[0].set_ylabel('Accuracy %')
+
 ax[1].set_xlabel('Components')
 ax[1].set_ylabel('Accuracy %')
 
