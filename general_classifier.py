@@ -104,7 +104,7 @@ def classify_glcm(model, book, sheet, limit):
         print('Serial #', serial, 'done.')
 
 
-def classify_hog(model, book, sheet, limit):
+def classify_hog(model, book, sheet, limit):    
     line = 1
     for serial in range(1,limit):
         path = flocate.HOG_all_case_feats_form.format(serial)
@@ -124,8 +124,9 @@ if __name__ == "__main__":
     #model = rf     # time consuming - 36 combos
     #model = svc
     
-    title = model.title+'_glcm54_x'
-    print(model.headers)
+    title = model.title+'_glcm'
+    title = model.title+'_hog'
+
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\excels\\'
     book, sheet = create_excel(excel_loc, title, model)
 

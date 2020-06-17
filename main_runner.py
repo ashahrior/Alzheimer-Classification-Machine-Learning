@@ -24,11 +24,11 @@ provide the same F to get The Features together
 
 
 #Saving the .npy file from the nifti file format
-'''
-fc.load_data(flocate.nii_AD_path, flocate.npy_main_AD_path,0)
-fc.load_data(flocate.nii_CN_path, flocate.npy_main_CN_path,0)
-fc.load_data(flocate.nii_MCI_path, flocate.npy_main_MCI_path,0)
-'''
+
+fc.convert_nii_to_npy(flocate.nii_AD_path, flocate.npy_main_AD_path,0)
+fc.convert_nii_to_npy(flocate.nii_CN_path, flocate.npy_main_CN_path,0)
+fc.convert_nii_to_npy(flocate.nii_MCI_path, flocate.npy_main_MCI_path,0)
+
 
 # Calculating the GLCM Features
 '''

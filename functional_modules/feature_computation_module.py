@@ -7,7 +7,7 @@ import numpy as np
 
 
 ####### Loading Data ######
-def load_data(address,location,number,title=''):
+def convert_nii_to_npy(address,location,number,title=''):
     '''
     :param address: Where the nifti file is.
     :param location: Where to save the file .npy
