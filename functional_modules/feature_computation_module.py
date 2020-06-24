@@ -25,7 +25,7 @@ def convert_nii_to_npy(address,location,number,title=''):
             n += 1
         except Exception as e:
             pass
-    print('Image Loaded and Saved!!!!')
+    print('Image loaded and saved!!!!')
 
 #### Opening npy Data from the file ...
 def open_NPY(address,n):
@@ -59,7 +59,7 @@ def get_high_low_gray_level(img,n):
 ####### Changing the Dynamic range of the Image ...
 def change_image_dynamic_range(img,n,low,high):
     newImg = 255*((img - low)/(high - low))
-    print('Chnaged Image Returned')
+    print('Changed Image returned')
     return newImg
 
 ##### Converting into INtegers
@@ -83,7 +83,7 @@ def get_GLCM(img,n):
                 #kgg = input('Hello : ')
                 glcm[i,int(img[i,j,k]),int(img[i,j,k+1])] += 1
         print('Computing GLCM slice {}-{}'.format(n,i))
-    print('GLCM Returned')
+    print('GLCM returned')
     return glcm
 
 ###### Normalizing The Inputs ...
@@ -92,7 +92,7 @@ def normalize_GLCM(img,n):
     for i in range(img.shape[0]):
         sum = sum + np.sum(img[i,:,:])
     Nimg = img/sum
-    print('Normalize Glcm Data-{} Returned'.format(n))
+    print('Normalized GLCM data-{} returned'.format(n))
     return Nimg
 
 ##### Computing Homogeneity ....
@@ -106,7 +106,7 @@ def get_homogeneity(img,n):
                 #print('{}-{}: {}'.format(j,k,entropy))
         C.append(con)
         print('slice {}-{}'.format(n,i),'Homogeneity: {}'.format(con))
-    print('Homogeneity Returned')
+    print('Homogeneity returned')
     return C
 
 ##### Computing Disimilarity ....
@@ -120,7 +120,7 @@ def get_dissimilarity(img,n):
                 #print('{}-{}: {}'.format(j,k,entropy))
         C.append(con)
         print('slice {}-{}'.format(n,i),'Dissimilarity: {}'.format(con))
-    print('Dissimilarity Returned')
+    print('Dissimilarity returned')
     return C
 
 ##### Computing ASM = Anglar Second Moment ....
@@ -134,7 +134,7 @@ def get_ASM(img,n):
                 #print('{}-{}: {}'.format(j,k,entropy))
         C.append(con)
         print('slice {}-{}'.format(n,i),'ASM: {}'.format(con))
-    print('ASM Returned')
+    print('ASM returned')
     return C
 
 ##### Computing IDM = Inverse Difference Moment ....
@@ -148,7 +148,7 @@ def get_IDM(img,n):
                 #print('{}-{}: {}'.format(j,k,entropy))
         C.append(con)
         print('slice {}-{}'.format(n,i),'IDM: {}'.format(con))
-    print('IDM Returned')
+    print('IDM returned')
     return C
 
 ##### Computing Contrast ....
@@ -163,7 +163,7 @@ def get_contrast(img,n):
                 #print('{}-{}: {}'.format(j,k,entropy))
         C.append(con)
         print('slice {}-{}'.format(n,i),'Contrast: {}'.format(con))
-    print('Contrast Returned')
+    print('Contrast returned')
     return C
 
 ############### Computing Entropy from Image File....
@@ -192,7 +192,7 @@ def get_brightness(img,n):
         total  = np.sum(img[i])
         brightness.append(total/N)
         print('Slice {}-{} brightness : {}'.format(n,i,brightness[i]))
-    print('Brightness Returned')
+    print('Brightness returned')
     return brightness
 
 ### Computing Variances  of slices of gray scale images from 3d npy data ...
@@ -205,7 +205,7 @@ def get_variance(img,mean,n):
         variance.append(total/(N-1))
 
         print('Slice {}-{} Variance : {}'.format(n,i,variance[i]))
-    print('Variance Returned')
+    print('Variance returned')
     return variance
 
 ##### Loading All The features into One Array ....

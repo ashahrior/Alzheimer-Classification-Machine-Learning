@@ -1,18 +1,21 @@
-import cv2
+import time
 import itertools
-import numpy as np
-import FeatureComputation as fc
-from sklearn.cluster import KMeans
 
+import cv2
+import numpy as np
+import pickle
+from sklearn import model_selection
+from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
 
+from functional_modules import feature_computation_module as fc
 
-def VLAD(X,visualDictionary):
 
+def VLAD(X, visualDictionary):
     predictedLabels = visualDictionary.predict(X)
     centers = visualDictionary.cluster_centers_
-    labels=visualDictionary.labels_
-    k=visualDictionary.n_clusters
+    labels = visualDictionary.labels_
+    k = visualDictionary.n_clusters
 
     m,d = X.shape
     V=np.zeros([k,d])
@@ -33,14 +36,15 @@ def VLAD(X,visualDictionary):
     V = V/np.sqrt(np.dot(V,V))
     return V
 
+
 def getVLADDescriptors(path,visualDictionary,low,high,n):
     descriptors=list()
     idImage =list()
     for i in range(n):
         print('Data-{}'.format(i))
         img=np.load(path+'data{}.npy'.format(i+1),allow_pickle=True)
-        l,h = fc.High_Low(img,i+1)
-        img = fc.Change_Range(img,i+1,l,h)
+        l, h = fc.get_high_low_gray_level(img, i+1)
+        img = fc.change_image_dynamic_range(img, i+1, l, h)
 
         final_des = list()
         for j in range(low,high):
@@ -51,8 +55,8 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
             r = des.shape[0]
             c = des.shape[1]
             row = list()
-            if r>=300:
-                for k in range(300):
+            if r>=200:
+                for k in range(200):
                     for m in range(c):
                         row.append(des[k,m])
             else:
@@ -60,7 +64,7 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
                     for m in range(c):
                         row.append(des[k,m])
 
-                for k in range(300-r):
+                for k in range(200-r):
                     for m in range(c):
                         row.append(0)
 
@@ -87,10 +91,12 @@ def  kMeansDictionary(training, k):
     :return: returns the words
     '''
     #K-means algorithm
+    print('Inside kMeansDictionary function.')
     est = KMeans(n_clusters=k,init='k-means++',tol=0.0001,verbose=1).fit(training)
     #centers = est.cluster_centers_
     #labels = est.labels_
     #est.predict(X)
+    print('Exiting kMeansDictionary')
     return est
 
 def describeORB( image):
@@ -99,31 +105,31 @@ def describeORB( image):
     #ORB is basically a fusion of FAST keypoint detector and BRIEF descriptor
     #with many modifications to enhance the performance
     orb=cv2.ORB_create()
-    kp, des=orb.detectAndCompute(image,None) #Image should be .jpeg format
+    kp, des=orb.detectAndCompute(image, None) #Image should be .jpeg format
     return kp,des
 
-def all_descriptors(loc,low,high,n,descriptors,group):
+def all_descriptors(loc, low, high, n, descriptors, group):
     '''
     :param loc: Where the files are
-    :param low: lowest number of the slice that would be selected
-    :param high: highest number of the slice that would be selected
-    :param n: numbers of nifti files in the location
+    :param low: lowest number of the slice that would be selected - 40
+    :param high: highest number of the slice that would be selected - 150+1
+    :param n: numbers of files in the location
     :return: a list of descriptors ...
     '''
     size = 0
     h_len = 0
     for i in range(n):
-        print('{}-Data-{}'.format(group,i+1))
-        img = np.load(loc+'data{}.npy'.format(i+1),allow_pickle=True)
-        l,h = fc.High_Low(img,i+1)
-        img = fc.Change_Range(img,i+1,l,h)
+        print('{}-Data-{}'.format(group, i+1))
+        img = np.load(loc+'data{}.npy'.format(i+1), allow_pickle=True)
+        l, h = fc.get_high_low_gray_level(img, i+1)
+        img = fc.change_image_dynamic_range(img, i+1, l, h)
 
         final_des = list()
-        for j in range(low,high):
-            cv2.imwrite('photo.jpg',img[j])
-            img1 = cv2.imread('photo.jpg',0)
+        for j in range(low, high):
+            cv2.imwrite('photo.jpg', img[j])
+            img1 = cv2.imread('photo.jpg', 0)
             kp,des = describeORB(img1)
-
+            
             #print(des.shape)
             '''
             if len(kp) > h_len:
@@ -131,13 +137,13 @@ def all_descriptors(loc,low,high,n,descriptors,group):
                 print(h_len)
             '''
 
-            if des.any() != None:
+            if des is not None:
                 r = des.shape[0]
                 c = des.shape[1]
-                #size = size + 300*c
+                #size = size + 200*c
                 row = list()
-                if r>=300:
-                    for k in range(300):
+                if r>=200:
+                    for k in range(200):
                         for m in range(c):
                             row.append(des[k,m])
                 else:
@@ -145,7 +151,7 @@ def all_descriptors(loc,low,high,n,descriptors,group):
                         for m in range(c):
                             row.append(des[k,m])
 
-                    for k in range(300-r):
+                    for k in range(200-r):
                         for m in range(c):
                             row.append(0)
 
@@ -153,7 +159,7 @@ def all_descriptors(loc,low,high,n,descriptors,group):
                 final_des.append(row)
             else:
                 row = list()
-                for k in range(300):
+                for k in range(200):
                     for m in range(32):
                         row.append(0)
 
@@ -172,82 +178,64 @@ def all_descriptors(loc,low,high,n,descriptors,group):
     return descriptors
 
 
-'''
-##### Main Program #######
-img = np.load('Train/AD/data3.npy',allow_pickle=True)
-cv2.imwrite('photo1.jpg',img[80])
-l,h = fc.High_Low(img,5)
-img = fc.Change_Range(img,4,l,h)
-
-img1 = cv2.imread('photo1.jpg',0)
-
-image = img[80]
-
-kp,des = describeORB(img1)
-
-
-orb = cv2.ORB()
-kp = orb.detect(img[80],None)
-
-
-plt.imshow(des,cmap='gray')
-plt.show()
-'''
-
-
 #################### 1. Making Ready for All_features ########
 
 Total = 0
+low = 40
+high = 151
 
-print('#######################')
-loc = 'Train/AD/'
-n = 20
-low = 60
-high = 122
-Total += n
+'''
 des = list()
-des = all_descriptors(loc,low,high,n,des,'AD')
 
 print('#######################')
-loc = 'Test/AD/'
-n = 9
+loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
+n = 54
 Total += n
-des = all_descriptors(loc,low,high,n,des,'AD')
+des = all_descriptors(loc, low, high, n, des, 'AD')
+#input('AD complete. Enter to continue >>')
 
 print('#######################')
-loc = 'Train/CN/'
-n = 24
+loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
+n = 54#115
 Total += n
-des = all_descriptors(loc,low,high,n,des,'CN')
+des = all_descriptors(loc, low, high, n, des, 'CN')
+#input('CN complete. Enter to continue >>')
 
 print('#######################')
-loc = 'Test/CN/'
-n = 10
+loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
+n = 54#133
 Total += n
-des = all_descriptors(loc,low,high,n,des,'CN')
-
-print('#######################')
-loc = 'Train/MCI/'
-n = 31
-Total += n
-des = all_descriptors(loc,low,high,n,des,'MCI')
-
-print('#######################')
-loc = 'Test/MCI/'
-n = 14
-Total += n
-des = all_descriptors(loc,low,high,n,des,'MCI')
+des = all_descriptors(loc, low, high, n, des, 'MCI')
+#input('MCI complete. Enter to continue >>')
 
 des = list(itertools.chain.from_iterable(des)) #Flatten
 des = np.asarray(des)
 
-np.save('vlad_Feat.npy',des)
+np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\VLAD_feat.npy', des)
 
-#################### 2. Making Visual Words #############
+print()
 '''
-visualDict = kMeansDictionary(des_ad,256)
 
-############# 3. Getting the VLAD descriptors ########
+start_time = time.time()
 
-vlad_des = getVLADDescriptors(loc,visualDict,low,high,n)
+############# 2. Making Visual Words #############
+vlad_data_file = np.load(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\VLAD_feat.npy", allow_pickle=True)
+visualDict = kMeansDictionary(vlad_data_file, 256)
+print('Visual Dictionary obtained.')
+
+model_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean_model.sav'
+pickle.dump(visualDict,open(model_file,'wb'))
+print('Visual Dictionary saved.')
+
 '''
+############# 3. Getting the VLAD descriptors #############
+n = 54
+vlad_ad = getVLADDescriptors(ad_loc, visualDict, low, high, n)
+vlad_cn = getVLADDescriptors(cn_loc, visualDict, low, high, n)
+vlad_mci = getVLADDescriptors(mci_loc, visualDict, low, high, n)
+'''
+
+e = int(time.time() - start_time)
+print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
+
+''''''
