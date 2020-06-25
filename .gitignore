@@ -1,4 +1,8 @@
 misc.txt
 desktop.ini
 test.py
+tempCodeRunnerFile.py
 *.jpg
+/__pycache__
+/.vscode
+/functional_modules/__pycache__

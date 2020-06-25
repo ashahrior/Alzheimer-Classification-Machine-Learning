@@ -1,5 +1,6 @@
 import time
 import itertools
+import sys
 
 import cv2
 import numpy as np
@@ -9,6 +10,11 @@ from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
 
 from functional_modules import feature_computation_module as fc
+
+def beeper():
+    for i in range(5):
+        sys.stdout.write('\a')
+        time.sleep(2)
 
 
 def VLAD(X, visualDictionary):
@@ -41,8 +47,8 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
     descriptors=list()
     idImage =list()
     for i in range(n):
-        print('Data-{}'.format(i))
-        img=np.load(path+'data{}.npy'.format(i+1),allow_pickle=True)
+        print('Data-{}'.format(i+1))
+        img = np.load(path + 'data{}.npy'.format(i+1), allow_pickle=True)
         l, h = fc.get_high_low_gray_level(img, i+1)
         img = fc.change_image_dynamic_range(img, i+1, l, h)
 
@@ -50,22 +56,32 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
         for j in range(low,high):
             cv2.imwrite('photo.jpg',img[j])
             img1 = cv2.imread('photo.jpg',0)
-            kp,des = describeORB(img1)
+            kp, des = describeORB(img1)
+            
+            if des is not None:
+                r = des.shape[0]
+                c = des.shape[1]
+                row = list()
+                if r>=50:
+                    for k in range(50):
+                        for m in range(c):
+                            row.append(des[k,m])
+                else:
+                    for k in range(r):
+                        for m in range(c):
+                            row.append(des[k,m])
 
-            r = des.shape[0]
-            c = des.shape[1]
+                    for k in range(50-r):
+                        for m in range(c):
+                            row.append(0)
+
+            row = np.asarray(row)
+            final_des.append(row)
+        else:
             row = list()
-            if r>=200:
-                for k in range(200):
-                    for m in range(c):
-                        row.append(des[k,m])
-            else:
-                for k in range(r):
-                    for m in range(c):
-                        row.append(des[k,m])
 
-                for k in range(200-r):
-                    for m in range(c):
+            for k in range(50):
+                    for m in range(32):
                         row.append(0)
 
             row = np.asarray(row)
@@ -82,7 +98,8 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
 
     #list to array
     descriptors = np.asarray(descriptors)
-    return descriptors, idImage
+    return descriptors
+
 
 def  kMeansDictionary(training, k):
     '''
@@ -99,6 +116,7 @@ def  kMeansDictionary(training, k):
     print('Exiting kMeansDictionary')
     return est
 
+
 def describeORB( image):
     #An efficient alternative to SIFT or SURF
     #doc http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_orb/py_orb.html
@@ -107,6 +125,7 @@ def describeORB( image):
     orb=cv2.ORB_create()
     kp, des=orb.detectAndCompute(image, None) #Image should be .jpeg format
     return kp,des
+
 
 def all_descriptors(loc, low, high, n, descriptors, group):
     '''
@@ -140,10 +159,10 @@ def all_descriptors(loc, low, high, n, descriptors, group):
             if des is not None:
                 r = des.shape[0]
                 c = des.shape[1]
-                #size = size + 200*c
+                #size = size + 50*c
                 row = list()
-                if r>=200:
-                    for k in range(200):
+                if r>=50:
+                    for k in range(50):
                         for m in range(c):
                             row.append(des[k,m])
                 else:
@@ -151,7 +170,7 @@ def all_descriptors(loc, low, high, n, descriptors, group):
                         for m in range(c):
                             row.append(des[k,m])
 
-                    for k in range(200-r):
+                    for k in range(50-r):
                         for m in range(c):
                             row.append(0)
 
@@ -159,7 +178,7 @@ def all_descriptors(loc, low, high, n, descriptors, group):
                 final_des.append(row)
             else:
                 row = list()
-                for k in range(200):
+                for k in range(50):
                     for m in range(32):
                         row.append(0)
 
@@ -179,63 +198,107 @@ def all_descriptors(loc, low, high, n, descriptors, group):
 
 
 #################### 1. Making Ready for All_features ########
+def get_all_descriptors(low, high):
+    des = list()
+    total = 0
+    print('#######################')
+    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
+    n = 54
+    total += n
+    des = all_descriptors(loc, low, high, n, des, 'AD')
+    #beeper()
+    #input('AD complete. Enter to continue >>')
 
-Total = 0
-low = 40
-high = 151
 
-'''
-des = list()
+    print('#######################')
+    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
+    n = 54#115
+    total += n
+    des = all_descriptors(loc, low, high, n, des, 'CN')
+    #beeper()
+    #input('CN complete. Enter to continue >>')
 
-print('#######################')
-loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
-n = 54
-Total += n
-des = all_descriptors(loc, low, high, n, des, 'AD')
-#input('AD complete. Enter to continue >>')
 
-print('#######################')
-loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
-n = 54#115
-Total += n
-des = all_descriptors(loc, low, high, n, des, 'CN')
-#input('CN complete. Enter to continue >>')
+    print('#######################')
+    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
+    n = 54#133
+    total += n
+    des = all_descriptors(loc, low, high, n, des, 'MCI')
+    #beeper()
+    #input('MCI complete. Enter to continue >>')
 
-print('#######################')
-loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
-n = 54#133
-Total += n
-des = all_descriptors(loc, low, high, n, des, 'MCI')
-#input('MCI complete. Enter to continue >>')
 
-des = list(itertools.chain.from_iterable(des)) #Flatten
-des = np.asarray(des)
+    des = list(itertools.chain.from_iterable(des)) #Flatten
+    des = np.asarray(des).astype('uint8')
 
-np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\VLAD_feat.npy', des)
+    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\VLAD_50feat.npy', des)
 
-print()
-'''
+    print()
+    return
 
-start_time = time.time()
 
 ############# 2. Making Visual Words #############
-vlad_data_file = np.load(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\VLAD_feat.npy", allow_pickle=True)
-visualDict = kMeansDictionary(vlad_data_file, 256)
-print('Visual Dictionary obtained.')
+def get_visual_dict():
+    vlad_data_file = np.load(
+        r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\VLAD_50feat.npy", allow_pickle=True)
+    print(vlad_data_file.shape)
+    print(np.max(vlad_data_file))
+    print(vlad_data_file.dtype)
+    print(vlad_data_file[0, -1])
+    visualDict = kMeansDictionary(vlad_data_file, 256)
+    print('Visual Dictionary obtained.')
 
-model_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean_model.sav'
-pickle.dump(visualDict,open(model_file,'wb'))
-print('Visual Dictionary saved.')
+    model_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean50_model.sav'
+    pickle.dump(visualDict, open(model_file, 'wb'))
+    print('Visual Dictionary model saved.')
+    return
 
-'''
+
 ############# 3. Getting the VLAD descriptors #############
-n = 54
-vlad_ad = getVLADDescriptors(ad_loc, visualDict, low, high, n)
-vlad_cn = getVLADDescriptors(cn_loc, visualDict, low, high, n)
-vlad_mci = getVLADDescriptors(mci_loc, visualDict, low, high, n)
-'''
+def get_vlad_desc(low, high):
+    n = 54
 
-e = int(time.time() - start_time)
-print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
+    ad_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
+    cn_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
+    mci_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
 
-''''''
+    visualDict = pickle.load(open("E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean50_model.sav", 'rb'))
+
+    '''
+    vlad_ad = getVLADDescriptors(ad_loc, visualDict, low, high, n)
+
+    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_ad.npy', vlad_ad)
+
+    print()
+    input('AD complete. Enter to continue >>')
+    '''
+
+    
+    '''
+    vlad_cn = getVLADDescriptors(cn_loc, visualDict, low, high, n)
+
+    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_cn.npy', vlad_cn)
+
+    print()
+    input('CN complete. Enter to continue >>')
+    '''
+
+    ''''''
+    vlad_mci = getVLADDescriptors(mci_loc, visualDict, low, high, n)
+
+    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_mci.npy', vlad_mci)
+
+    print()
+    input('MCI complete. Enter to continue >>')
+    ''''''
+    return
+
+if __name__ == "__main__":
+    start_time = time.time()
+    low = 40
+    high = 151
+    #get_all_descriptors(low, high)
+    #get_visual_dict()
+    get_vlad_desc(low,high)
+    e = int(time.time() - start_time)
+    print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
