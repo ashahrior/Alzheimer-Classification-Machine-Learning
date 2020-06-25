@@ -293,12 +293,42 @@ def get_vlad_desc(low, high):
     ''''''
     return
 
+
+def merge_vlads():
+    # param target: 1 for AD, 2 for CN and 3 for MCI
+
+    adv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_ad.npy"
+
+    cnv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_cn.npy"
+
+    mciv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_mci.npy"
+
+    adv50 = np.load(adv50, allow_pickle=True)
+    cnv50 = np.load(cnv50, allow_pickle=True)
+    mciv50 = np.load(mciv50, allow_pickle=True)
+
+    n = adv50.shape[0]
+
+    ad_t = np.full((n,), 1, dtype=int)
+    cn_t = np.full((n,), 2, dtype=int)
+    mci_t = np.full((n,), 3, dtype=int)
+
+    adv50_t = np.column_stack((adv50, ad_t))
+    cnv50_t = np.column_stack((cnv50, cn_t))
+    mciv50_t = np.column_stack((mciv50, mci_t))
+
+    vlad50_all_cases = np.concatenate((adv50_t, cnv50_t, mciv50_t), axis=0)
+
+    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_all_cases.npy', vlad50_all_cases)
+
+
 if __name__ == "__main__":
     start_time = time.time()
     low = 40
     high = 151
     #get_all_descriptors(low, high)
     #get_visual_dict()
-    get_vlad_desc(low,high)
+    #get_vlad_desc(low,high)
+    #merge_vlads()
     e = int(time.time() - start_time)
     print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
