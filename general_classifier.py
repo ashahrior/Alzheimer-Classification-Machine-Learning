@@ -95,9 +95,8 @@ def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
     return line,scores
 
 
-def classify_glcm(model, book, sheet, limit):
-    glcm54_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\GLCM54feats54.npy"
-    X, Y = prepare_data(glcm54_path)
+def classify_glcm(model, book, sheet, limit, path):
+    X, Y = prepare_data(path)
     line = 1
     scores = []
     for serial in range(1,limit):
@@ -119,9 +118,8 @@ def classify_hog(model, book, sheet, limit):
     print(scores)
 
 
-def classify_vlad(model, book, sheet):
-    vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
-    X, Y = prepare_data(vlad50_path)
+def classify_vlad(model, book, sheet, path):  
+    X, Y = prepare_data(path)
     scores = []
     line, scores = train_model(model, X, Y, book, sheet)
     print(scores)
@@ -149,12 +147,14 @@ if __name__ == "__main__":
     limit = 161
 
     # function for handling glcm
-    #classify_glcm(model, book, sheet, limit)
+    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\FiftyFour\GLCM54feats54.npy"
+    #classify_glcm(model, book, sheet, limit, glcm_path)
     
     # function for handling hog
     #classify_hog(model, book, sheet, limit)
 
     # function for handling vlad
+    vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
     classify_vlad(model, book, sheet)
     
     book.close()
