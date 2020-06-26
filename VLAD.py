@@ -11,11 +11,8 @@ from matplotlib import pyplot as plt
 
 from functional_modules import feature_computation_module as fc
 
-def beeper():
-    for i in range(5):
-        sys.stdout.write('\a')
-        time.sleep(2)
 
+feature_count = 100
 
 def VLAD(X, visualDictionary):
     predictedLabels = visualDictionary.predict(X)
@@ -62,8 +59,8 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
                 r = des.shape[0]
                 c = des.shape[1]
                 row = list()
-                if r>=50:
-                    for k in range(50):
+                if r>=feature_count:
+                    for k in range(feature_count):
                         for m in range(c):
                             row.append(des[k,m])
                 else:
@@ -71,7 +68,7 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
                         for m in range(c):
                             row.append(des[k,m])
 
-                    for k in range(50-r):
+                    for k in range(feature_count-r):
                         for m in range(c):
                             row.append(0)
 
@@ -80,7 +77,7 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
         else:
             row = list()
 
-            for k in range(50):
+            for k in range(feature_count):
                     for m in range(32):
                         row.append(0)
 
@@ -161,8 +158,8 @@ def all_descriptors(loc, low, high, n, descriptors, group):
                 c = des.shape[1]
                 #size = size + 50*c
                 row = list()
-                if r>=50:
-                    for k in range(50):
+                if r>=feature_count:
+                    for k in range(feature_count):
                         for m in range(c):
                             row.append(des[k,m])
                 else:
@@ -170,7 +167,7 @@ def all_descriptors(loc, low, high, n, descriptors, group):
                         for m in range(c):
                             row.append(des[k,m])
 
-                    for k in range(50-r):
+                    for k in range(feature_count-r):
                         for m in range(c):
                             row.append(0)
 
@@ -178,7 +175,7 @@ def all_descriptors(loc, low, high, n, descriptors, group):
                 final_des.append(row)
             else:
                 row = list()
-                for k in range(50):
+                for k in range(feature_count):
                     for m in range(32):
                         row.append(0)
 
@@ -231,7 +228,8 @@ def get_all_descriptors(low, high):
     des = list(itertools.chain.from_iterable(des)) #Flatten
     des = np.asarray(des).astype('uint8')
 
-    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\VLAD_50feat.npy', des)
+    np.save(
+        f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\VLAD_{feature_count}_uint_feat.npy', des)
 
     print()
     return
@@ -239,8 +237,7 @@ def get_all_descriptors(low, high):
 
 ############# 2. Making Visual Words #############
 def get_visual_dict():
-    vlad_data_file = np.load(
-        r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\VLAD_50feat.npy", allow_pickle=True)
+    vlad_data_file = np.load(f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\VLAD_{feature_count}_uint_feat.npy", allow_pickle=True)
     print(vlad_data_file.shape)
     print(np.max(vlad_data_file))
     print(vlad_data_file.dtype)
@@ -248,7 +245,7 @@ def get_visual_dict():
     visualDict = kMeansDictionary(vlad_data_file, 256)
     print('Visual Dictionary obtained.')
 
-    model_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean50_model.sav'
+    model_file = f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\KMean{feature_count}_model.sav'
     pickle.dump(visualDict, open(model_file, 'wb'))
     print('Visual Dictionary model saved.')
     return
@@ -262,73 +259,79 @@ def get_vlad_desc(low, high):
     cn_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
     mci_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
 
-    visualDict = pickle.load(open("E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\KMean50_model.sav", 'rb'))
+    visualDict = pickle.load(open(f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\KMean{feature_count}_model.sav", 'rb'))
 
     '''
     vlad_ad = getVLADDescriptors(ad_loc, visualDict, low, high, n)
 
-    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_ad.npy', vlad_ad)
+    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_ad.npy', vlad_ad)
 
-    print()
-    input('AD complete. Enter to continue >>')
+    print('--- AD complete ---')
+    #input('AD complete. Enter to continue >>')
     '''
 
     
-    '''
+    ''''''
     vlad_cn = getVLADDescriptors(cn_loc, visualDict, low, high, n)
 
-    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_cn.npy', vlad_cn)
+    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_cn.npy', vlad_cn)
 
     print()
     input('CN complete. Enter to continue >>')
-    '''
+    ''''''
 
     ''''''
     vlad_mci = getVLADDescriptors(mci_loc, visualDict, low, high, n)
 
-    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_mci.npy', vlad_mci)
+    np.save(
+        f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_mci.npy', vlad_mci)
 
     print()
     input('MCI complete. Enter to continue >>')
     ''''''
+
     return
 
 
 def merge_vlads():
     # param target: 1 for AD, 2 for CN and 3 for MCI
 
-    adv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_ad.npy"
+    adv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_ad.npy"
 
-    cnv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_cn.npy"
+    cnv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_cn.npy"
 
-    mciv50 = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_mci.npy"
+    mciv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_mci.npy"
 
-    adv50 = np.load(adv50, allow_pickle=True)
-    cnv50 = np.load(cnv50, allow_pickle=True)
-    mciv50 = np.load(mciv50, allow_pickle=True)
+    adv = np.load(adv, allow_pickle=True)
+    cnv = np.load(cnv, allow_pickle=True)
+    mciv = np.load(mciv, allow_pickle=True)
 
-    n = adv50.shape[0]
+    n = adv.shape[0]
 
-    ad_t = np.full((n,), 1, dtype=int)
-    cn_t = np.full((n,), 2, dtype=int)
-    mci_t = np.full((n,), 3, dtype=int)
+    ad_t = np.full((n,), 1, dtype='uint8')
+    cn_t = np.full((n,), 2, dtype='uint8')
+    mci_t = np.full((n,), 3, dtype='uint8')
 
-    adv50_t = np.column_stack((adv50, ad_t))
-    cnv50_t = np.column_stack((cnv50, cn_t))
-    mciv50_t = np.column_stack((mciv50, mci_t))
+    adv_t = np.column_stack((adv, ad_t))
+    cnv_t = np.column_stack((cnv, cn_t))
+    mciv_t = np.column_stack((mciv, mci_t))
 
-    vlad50_all_cases = np.concatenate((adv50_t, cnv50_t, mciv50_t), axis=0)
+    vlad_all_cases = np.concatenate((adv_t, cnv_t, mciv_t), axis=0)
 
-    np.save('E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad50_all_cases.npy', vlad50_all_cases)
+    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad_all_cases_{feature_count}.npy', vlad_all_cases)
 
 
 if __name__ == "__main__":
     start_time = time.time()
     low = 40
     high = 151
-    #get_all_descriptors(low, high)
-    #get_visual_dict()
+    # step - 1
+    #get_all_descriptors(low, high) # complete - 50, 100, 200 
+    # step - 2
+    #get_visual_dict()   # complete - 50, 100
+    # step - 3
     #get_vlad_desc(low,high)
+    # step - 4
     #merge_vlads()
     e = int(time.time() - start_time)
     print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
