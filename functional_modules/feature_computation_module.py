@@ -21,7 +21,7 @@ def convert_nii_to_npy(address,location,number,title=''):
             path = os.path.join(address,f)
             img = nib.load(path)
             img = img.get_data()
-            np.save(location+title+'data{}.npy'.format(number+n),img) ##Check The location
+            np.save(location+title+'\\data{}.npy'.format(number+n),img) ##Check The location
             n += 1
         except Exception as e:
             pass
@@ -651,11 +651,11 @@ def compute_3D_brightness(img,n):
     return brightness
 
 #### Return the brightnesses ...
-def get_brightness(A):
+'''def get_brightness(A):
     train_Data = np.load(A,allow_pickle=True)
     print(train_Data)
     #return  train_Data
-
+'''
 
 ###### Normalizing The Inputs ...
 def normalize(img,n):

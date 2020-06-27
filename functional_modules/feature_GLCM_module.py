@@ -16,7 +16,8 @@ def calculate_GLCM_feats(address, location, n, start=0):
     :return: nothing but saves the features
     '''
     for i in range(start,n):
-        data = fc.open_interest_data(address+'data{}.npy',i+1) # Openning .npy file from the Location
+        #data = fc.open_interest_data(address+'data{}.npy',i+1) # Openning .npy file from the Location
+        data = np.load(address+'data{}.npy'.format(i+1), allow_pickle=True)
         low,high = fc.get_high_low_gray_level(data,i+1) # Retreiving Low and High for the next operation
         data = fc.change_image_dynamic_range(data,i+1,low,high) # getting the changed (Range) Image
         intData = fc.convert_into_integer(data,i+1) # Return Integer Image for GLCM
@@ -88,7 +89,7 @@ def generate_GLCM_feats_list(address,number_of_files,target,F):
 
         #Creating a row for the data file
         row = []
-        slices = 111
+        slices = asm.shape[0]
         for j in range(slices): #slices slices
             row.append(asm[j])
         for j in range(slices):

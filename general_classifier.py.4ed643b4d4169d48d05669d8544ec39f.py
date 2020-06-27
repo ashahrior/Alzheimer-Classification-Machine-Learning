@@ -32,11 +32,11 @@ def create_excel(excel_loc, title, classifier):
 def prepare_data(data_path):
     all_data = np.load(data_path, allow_pickle=True)
     shape = all_data.shape
-    print('Data shape >> ', shape)
+    print('Data shape >> ', )
     all_X = all_data[:, :-1]
     all_Y = all_data[:, -1]
     print('Data distribution complete.')
-    return all_X, all_Y, shape[0]-1
+    return all_X, all_Y, 
 
 
 def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
@@ -105,7 +105,6 @@ def classify_glcm(model, book, sheet, path):
         scores.append(best_scores)
         print('Serial #', serial, 'done.')
     print(scores)
-    print(max(scores))
 
 
 def classify_hog(model, book, sheet, limit):    
@@ -131,12 +130,12 @@ def classify_vlad(model, book, sheet, path):
 if __name__ == "__main__":
     start_time = time.time()
 
-    #model = dtree
+    model = dtree
     #model = gauss
     #model = knbr
     #model = svc
     #model = rf     # time consuming - 36 combos
-    model = lda    # time consuming - 210 combos
+    #model = lda    # time consuming - 210 combos
     #model = log     # time consuming - 336 //924 combos
     
     title = model.title+'_glcm10'
