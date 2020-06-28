@@ -136,8 +136,8 @@ if __name__ == "__main__":
     #model = knbr
     #model = svc
     #model = rf     # time consuming - 36 combos
-    model = lda    # time consuming - 210 combos
-    #model = log     # time consuming - 336 //924 combos
+    #model = lda    # time consuming - 210 combos
+    model = log     # time consuming - 336 combos
     
     title = model.title+'_glcm10'
     #title = model.title+'_hog'
