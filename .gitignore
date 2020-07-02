@@ -2,6 +2,7 @@ misc.txt
 desktop.ini
 test.py
 tempCodeRunnerFile.py
+interest_data_tuple_extractor.py
 *.jpg
 /__pycache__
 /.vscode
