@@ -1,7 +1,7 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 
-from functional_modules import log_reg_classifier_combos as log_reg_combo
+from classifier_modules import log_reg_classifier_combos as log_reg_combo
 
 title = 'LogReg_'
 

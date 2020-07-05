@@ -1,6 +1,6 @@
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics import accuracy_score
-from functional_modules import lda_classifier_combo
+from classifier_modules import lda_classifier_combo
 
 title = 'LDA_'
 

@@ -8,13 +8,13 @@ from sklearn.model_selection import train_test_split
 from functional_modules import file_locations_module as flocate
 from functional_modules import pca_module
 
-from functional_modules import DTreeModel as dtree
-from functional_modules import GaussianNBmodel as gauss
-from functional_modules import KNeighborModel as knbr
-from functional_modules import LDAmodel as lda
-from functional_modules import LogRegModel as log
-from functional_modules import RandForestModel as rf
-from functional_modules import SVCmodel as svc
+from classifier_modules import DTreeModel as dtree
+from classifier_modules import GaussianNBmodel as gauss
+from classifier_modules import KNeighborModel as knbr
+from classifier_modules import LDAmodel as lda
+from classifier_modules import LogRegModel as log
+from classifier_modules import RandForestModel as rf
+from classifier_modules import SVCmodel as svc
 
 
 def create_excel(excel_loc, title, classifier):
@@ -144,11 +144,11 @@ if __name__ == "__main__":
     #title = model.title +'_vlad50'
 
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\TEN10\excels\\'
-    book, sheet = create_excel(excel_loc, title, model)
+    #book, sheet = create_excel(excel_loc, title, model)
 
     # function for handling glcm
     glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\TEN10\glcm_10__feats.npy"
-    classify_glcm(model, book, sheet, glcm_path)
+    #classify_glcm(model, book, sheet, glcm_path)
     
     # function for handling hog
     #classify_hog(model, book, sheet, limit)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     #vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
     #classify_vlad(model, book, sheet)
     
-    book.close()
+    #book.close()
     print()
 
     e = int(time.time() - start_time)

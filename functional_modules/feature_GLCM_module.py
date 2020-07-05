@@ -8,7 +8,7 @@ import numpy as np
     - Calculates GLCM features for the .npy files
     - stores the features in separate .npy files
 '''
-def calculate_GLCM_feats(address, location, n, start=0):
+def calculate_GLCM_feats(case,address, location, n, start=0):
     '''
     :param address: 'folder/folder/' that contains the data*.npy files
     :param location: 'folder/folder/' where feature will be saved
@@ -17,11 +17,11 @@ def calculate_GLCM_feats(address, location, n, start=0):
     '''
     for i in range(start,n):
         #data = fc.open_interest_data(address+'data{}.npy',i+1) # Openning .npy file from the Location
-        data = np.load(address+'data{}.npy'.format(i+1), allow_pickle=True)
-        low,high = fc.get_high_low_gray_level(data,i+1) # Retreiving Low and High for the next operation
-        data = fc.change_image_dynamic_range(data,i+1,low,high) # getting the changed (Range) Image
-        intData = fc.convert_into_integer(data,i+1) # Return Integer Image for GLCM
-        glcm = fc.get_GLCM(intData,i+1) # Calculating GLCM
+        data = np.load(address+f'{case}-data{i+1}.npy', allow_pickle=True)
+        #low,high = fc.get_high_low_gray_level(data,i+1) # Retreiving Low and High for the next operation
+        #data = fc.change_image_dynamic_range(data,i+1,low,high) # getting the changed (Range) Image
+        #intData = fc.convert_into_integer(data,i+1) # Return Integer Image for GLCM
+        glcm = fc.get_GLCM(data,i+1) # Calculating GLCM
         glcm = fc.normalize_GLCM(glcm,i+1) # Normalizing GLCM
 
         ### Calculating The features using GLCM ..
@@ -36,13 +36,13 @@ def calculate_GLCM_feats(address, location, n, start=0):
         variance = fc.get_variance(data,brtns,i+1) # CAlculating Variance
 
         ### Saving THe Features....
-        fc.np.save((location+'homo{}.npy').format(i+1),homo)
-        fc.np.save((location+'diss{}.npy').format(i+1),diss)
-        fc.np.save((location+'asm{}.npy').format(i+1),asm)
-        fc.np.save((location+'idm{}.npy').format(i+1),idm)
-        fc.np.save((location+'entropy{}.npy').format(i+1),entropy)
-        fc.np.save((location+'brtns{}.npy').format(i+1),brtns)
-        fc.np.save((location+'variance{}.npy').format(i+1),variance)
+        fc.np.save((location+'{}-homo{}.npy').format(case, i+1),homo)
+        fc.np.save((location+'{}-diss{}.npy').format(case, i+1),diss)
+        fc.np.save((location+'{}-asm{}.npy').format(case, i+1),asm)
+        fc.np.save((location+'{}-idm{}.npy').format(case, i+1),idm)
+        fc.np.save((location+'{}-entropy{}.npy').format(case, i+1),entropy)
+        fc.np.save((location+'{}-brtns{}.npy').format(case, i+1),brtns)
+        fc.np.save((location+'{}-variance{}.npy').format(case, i+1),variance)
 
 
 
@@ -110,3 +110,11 @@ def generate_GLCM_feats_list(address,number_of_files,target,F):
         print('Data row for file #{} appended to Feature array.'.format(file_serial))
         print()
     return F
+
+
+if __name__ == "__main__":
+    src = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\Normalized_NPY\AD_normNPY\\"
+    case = 'AD'
+    target = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\GLCM_idata\iAD\\"
+    n = 54
+    pass
