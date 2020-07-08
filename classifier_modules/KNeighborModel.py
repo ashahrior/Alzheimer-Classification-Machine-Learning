@@ -13,7 +13,8 @@ parameters_list = [['uniform', 'distance'], ['auto', 'ball_tree', 'kd_tree', 'br
 
 combos = [list(x) for x in list(itertools.product(*[['uniform', 'distance'], ['auto', 'ball_tree', 'kd_tree', 'brute']]))]
 
-headers = ['WEIGHTS','ALGORITHM','BEST_ACCURACY,','COMPONENT-NO.','%-ACCURACY']
+headers = ['WEIGHTS', 'ALGORITHM', 'COMPONENT-NO.',
+           '%-ACCURACY', 'BEST_ACCURACY,']
 
 def make_model(c, train_X, train_Y, test_X, test_Y):
     

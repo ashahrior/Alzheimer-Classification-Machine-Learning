@@ -18,7 +18,8 @@ combos = [
         'entropy', 'best', 1, None], ['entropy', 'best', 1.0, 'balanced'], ['entropy', 'best', 1.0, None], ['entropy', 'best', 'auto', 'balanced'], ['entropy', 'best', 'auto', None], ['entropy', 'best', 'sqrt', 'balanced'], ['entropy', 'best', 'sqrt', None], ['entropy', 'best', 'log2', 'balanced'], ['entropy', 'best', 'log2', None], ['entropy', 'best', None, 'balanced'], ['entropy', 'best', None, None], ['entropy', 'random', 1, 'balanced'], ['entropy', 'random', 1, None], ['entropy', 'random', 1.0, 'balanced'], ['entropy', 'random', 1.0, None], ['entropy', 'random', 'auto', 'balanced'], ['entropy', 'random', 'auto', None], ['entropy', 'random', 'sqrt', 'balanced'], ['entropy', 'random', 'sqrt', None], ['entropy', 'random', 'log2', 'balanced'], ['entropy', 'random', 'log2', None], ['entropy', 'random', None, 'balanced'], ['entropy', 'random', None, None]
 ]
 
-headers = ['CRITERION', 'SPLITTER', 'MAX_FEATURES', 'CLASS_WEIGHT','BEST_ACCURACY,','COMPONENT-NO.','%-ACCURACY']
+headers = ['CRITERION', 'SPLITTER', 'MAX_FEATURES',
+           'CLASS_WEIGHT', 'COMPONENT-NO.', '%-ACCURACY','BEST_ACCURACY']
 
 def make_model(c, train_X, train_Y, test_X, test_Y):
     dtree_model = DecisionTreeClassifier(

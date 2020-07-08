@@ -20,7 +20,8 @@ combos = [
 ]
 
 
-headers = ['CRITERION', 'MAX_FEATURES', 'BOOTSTRAP', 'OOB_SCORE', 'WARM_START', 'BEST_ACCURACY,', 'COMPONENT_NO.','%-ACCURACY']
+headers = ['CRITERION', 'MAX_FEATURES', 'BOOTSTRAP', 'OOB_SCORE',
+           'WARM_START', 'COMPONENT_NO.', '%-ACCURACY', 'BEST_ACCURACY']
 
 
 def make_model(c, train_X, train_Y, test_X, test_Y):

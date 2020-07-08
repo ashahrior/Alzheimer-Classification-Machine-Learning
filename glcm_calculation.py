@@ -2,6 +2,7 @@ import numpy as np
 from skimage.feature import greycomatrix, greycoprops
 import os, re
 
+
 src = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\Normalized_NPY\{}_normNPY\\"
 
 target = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\GLCM_idata\i{}\\"
@@ -53,44 +54,43 @@ def save_glcm_feats(case, serial, con, diss, homo, en, corr, asms):
 
 
 def get_glcm(case,serial, data):
-    con = []
-    diss = []
-    homo = []
-    en = []
-    corr = []
-    asms = []
+    con = []; diss = []; homo = []; en = []; corr = []; asms = []
     for i in range(data.shape[0]):
         matrix_coocurrence = greycomatrix(data[i], [1], [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4], levels=256, normed=False, symmetric=False)
 
         asm = get_asm_feature(matrix_coocurrence)
-        asms.append(asm)
+        asms.append(asm.flatten())
 
         contrast = get_contrast_feature(matrix_coocurrence)
-        con.append(contrast)
+        con.append(contrast.flatten())
 
         correlation = get_correlation_feature(matrix_coocurrence)
-        corr.append(correlation)
+        corr.append(correlation.flatten())
         
         dissimilarity = get_dissimilarity_feature(matrix_coocurrence)
-        diss.append(dissimilarity)
+        diss.append(dissimilarity.flatten())
 
         energy = get_energy_feature(matrix_coocurrence)
-        en.append(energy)
+        en.append(energy.flatten())
         
         homogeneity = get_homogeneity_feature(matrix_coocurrence)
-        homo.append(homogeneity)
+        homo.append(homogeneity.flatten())
     save_glcm_feats(case, serial, con, diss, homo, en, corr, asms)
     return
+
+
+def calc_glcm(case):
+    os.chdir(src.format(case))
+    for file in os.listdir():
+        data = np.load(file, allow_pickle=True)
+        print(file, ' -> ', data.shape)
+        serial = re.findall('\d+', file)[0]
+        get_glcm(case, serial, data)
 
 
 if __name__ == "__main__":
     #case = 'AD'
     #case = 'CN'
-    case = 'MCI'
-    n = 54
-    os.chdir(src.format(case))
-    for file in os.listdir():
-        data = np.load(file, allow_pickle=True)
-        print(file,' -> ',data.shape)
-        serial = re.findall('\d+', file)[0]
-        get_glcm(case, serial, data)
+    #case = 'MCI'
+    case = ''
+    calc_glcm(case)

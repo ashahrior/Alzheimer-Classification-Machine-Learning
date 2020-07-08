@@ -1,17 +1,16 @@
-import os
-import numpy as np
+import numpy as np, os, pandas
 
-src_folder = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\Normalized_NPY\{}_normNPY"
+fol = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\GLCM_Imputed_idata\imputed_i{}\\"
+
+fsrc = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\GLCM_Imputed_idata\imputed_i{}\\{}-{}1-imp.npy"
+
+cases = ['AD', 'CN', 'MCI']
+
+case = 'AD'
+
+feats = ['asm', 'contrast', 'correlation',
+         'dissimlarity', 'energy', 'homogeneity']
+
+form = "{}-{}1-imp.npy"
 
 
-def check_shape(case):
-    os.chdir(src_folder.format(case))
-    print(os.getcwd())
-    for file in os.listdir():
-        data = np.load(file, allow_pickle=True)
-        print(np.max(data))
-        break
-
-if __name__ == "__main__":
-    case ='MCI'
-    check_shape(case)

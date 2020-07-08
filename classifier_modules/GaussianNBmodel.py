@@ -9,7 +9,7 @@ parameters_list = [var_smoothing]
 
 combos = [[var_smoothing]]
 
-headers = ['VAR_SMOOTHING','BEST_ACCURACY,','COMPONENT-NO.','%-ACCURACY']
+headers = ['VAR_SMOOTHING','COMPONENT-NO.','%-ACCURACY','BEST_ACCURACY,']
 
 def make_model(c, train_X, train_Y, test_X, test_Y):
     gaussnb_model = GaussianNB(var_smoothing=combos[c][0])

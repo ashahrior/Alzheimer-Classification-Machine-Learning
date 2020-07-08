@@ -1,7 +1,7 @@
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.metrics import accuracy_score
 from classifier_modules import lda_classifier_combo
-
+import
 title = 'LDA_'
 
 solver = ['svd', 'lsqr', 'eigen']
@@ -18,7 +18,7 @@ combos = lda_classifier_combo.lda_combos
 number_of_combos = len(combos)
 
 headers = ['SOLVER', 'SHRINKAGE', 'STORE-COVARIANCE',
-           'TOLERANCE', 'BEST-ACCURACY', 'COMPONENT-NO.','%-ACCURACY']
+           'TOLERANCE', 'COMPONENT-NO.', '%-ACCURACY', 'BEST-ACCURACY']
 
 
 def make_model(c, train_X, train_Y, test_X, test_Y):

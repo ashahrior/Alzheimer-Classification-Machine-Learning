@@ -21,7 +21,8 @@ parameters_list = [penalty, dual, tol, fit_intercept, solver, multiclass, warm]
 combos = log_reg_combo.logistic_regression_combos
 number_of_combos = len(combos)
 
-headers = ['PENALTY', 'DUAL', 'TOLERANCE', 'FIT_INTERCEPT', 'SOLVER', 'MULTICLASS', 'WARM_START', 'BEST_ACCURACY,', 'COMPONENT_NO.','%-ACCURACY']
+headers = ['PENALTY', 'DUAL', 'TOLERANCE', 'FIT_INTERCEPT', 'SOLVER',
+           'MULTICLASS', 'WARM_START', 'COMPONENT_NO.', '%-ACCURACY', 'BEST_ACCURACY,']
 
 
 def make_model(c, train_X, train_Y, test_X, test_Y):
