@@ -19,7 +19,7 @@ class IndexTracker(object):
         self.update()
 
     def onscroll(self, event):
-        print("%s %s" % (event.button, event.step))
+        #print("%s %s" % (event.button, event.step))
         if event.button == 'up':
             self.ind = (self.ind + 1) %self.rows
         else:
@@ -45,24 +45,3 @@ def Show(img):
 def ShowHist(img):
     plt.hist(img.ravel(),256)
     plt.show()
-
-
-'''
-img = nib.load('d2.nii')
-print(img.shape)
-
-print(img)
-
-img = img.get_data()
-print(img.shape)
-
-Show(img)
-
-#b1 = img[21,:,:]
-#print(b1.shape)
-
-#plt.imshow(b1, cmap='gray')
-#plt.show()
-'''
-
-

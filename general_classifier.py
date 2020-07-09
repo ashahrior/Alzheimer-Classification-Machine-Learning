@@ -4,6 +4,7 @@ import time
 import numpy as np
 
 from sklearn.model_selection import train_test_split
+from sklearn import preprocessing
 
 from functional_modules import file_locations_module as flocate
 from functional_modules import pca_module
@@ -57,7 +58,13 @@ def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
     success = 0
     best_score = 0
     fail = 0
-    scores = []
+    _scores = []
+    n_samples = 162
+
+    ###
+    #scaler = preprocessing.PowerTransformer(method='yeo-johnson', standardize=False)
+    #x = scaler.fit_transform(x)
+    ###
 
     train_X, test_X, train_Y, test_Y = train_test_split(x, Y, test_size=0.3)
 
@@ -72,14 +79,13 @@ def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
                 print('New highest accuracy:',score_model, '>', best_score)
                 print(combo_list[c])
                 best_score = score_model
-                scores.append(best_score)
+                _scores.append(best_score)
                 limit = len(headers) - 3
                 for i in range(len(headers)-3):
                     sheet.write(line, i, combo_list[c][i])
-
-                sheet.write(line, (len(headers)-1), best_score*100)
-                sheet.write(line, (len(headers)-2), serial)
-                sheet.write(line, (len(headers)-3), best_score)
+                sheet.write(line, (len(headers) - 3), serial)
+                sheet.write(line, (len(headers)-2), best_score*100)
+                sheet.write(line, (len(headers)-1), best_score)
                 print('Line #{} --- Component #{}'.format(line, serial))
                 line += 1
         except:
@@ -93,7 +99,7 @@ def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
     print('Total success: ', success)
     print('Total failure:', fail)
     #input('ENTER to continue...')
-    return line,scores
+    return line,_scores
 
 
 def classify_glcm(model, book, sheet, path):
@@ -104,8 +110,9 @@ def classify_glcm(model, book, sheet, path):
         line, best_scores = train_model(model, X, Y, book, sheet, line, serial, True)
         scores.append(best_scores)
         print('Serial #', serial, 'done.')
-    print(scores)
-    print(max(scores))
+    #print(scores)
+    #print()
+    #print(max(scores))
 
 
 def classify_hog(model, book, sheet, limit):    
@@ -136,19 +143,19 @@ if __name__ == "__main__":
     #model = knbr
     #model = svc
     #model = rf     # time consuming - 36 combos
-    #model = lda    # time consuming - 210 combos
-    model = log     # time consuming - 336 combos
+    model = lda    # time consuming - 210 combos
+    #model = log     # time consuming - 336 combos
     
-    title = model.title+'_glcm10'
+    title = model.title+'_cleanGLCM54_x'
     #title = model.title+'_hog'
     #title = model.title +'_vlad50'
 
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\TEN10\excels\\'
-    #book, sheet = create_excel(excel_loc, title, model)
+    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\'
+    book, sheet = create_excel(excel_loc, title, model)
 
     # function for handling glcm
-    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\TEN10\glcm_10__feats.npy"
-    #classify_glcm(model, book, sheet, glcm_path)
+    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\all_clean_glcm_54.npy"
+    classify_glcm(model, book, sheet, glcm_path)
     
     # function for handling hog
     #classify_hog(model, book, sheet, limit)
@@ -157,7 +164,7 @@ if __name__ == "__main__":
     #vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
     #classify_vlad(model, book, sheet)
     
-    #book.close()
+    book.close()
     print()
 
     e = int(time.time() - start_time)

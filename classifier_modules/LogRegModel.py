@@ -27,7 +27,7 @@ headers = ['PENALTY', 'DUAL', 'TOLERANCE', 'FIT_INTERCEPT', 'SOLVER',
 
 def make_model(c, train_X, train_Y, test_X, test_Y):
     log_reg_model = LogisticRegression(
-        penalty=combos[c][0], dual=combos[c][1], tol=combos[c][2],fit_intercept=combos[c][3], max_iter=100,
+        penalty=combos[c][0], dual=combos[c][1], tol=combos[c][2],fit_intercept=combos[c][3], max_iter=1000,
         random_state=0, solver=combos[c][4],
         multi_class=combos[c][5], warm_start= combos[c][6]
     )

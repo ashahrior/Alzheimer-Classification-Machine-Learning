@@ -32,7 +32,15 @@ def get_asm_feature(matrix_coocurrence):
     return greycoprops(matrix_coocurrence, 'ASM')
 
 
-def save_glcm_feats(case, serial, con, diss, homo, en, corr, asms):
+def save_glcm_feats(case, serial, features):
+    # con, diss, homo, en, corr, asms
+    con = features[0]
+    diss = features[1]
+    homo = features[2]
+    en = features[3]
+    corr = features[4]
+    asms = features[5]
+
     np.save((target.format(case) + "{}-asm{}".format(case,serial)), asms)
     print(f'{case}-{serial} asm', 'saved')
 
@@ -75,7 +83,10 @@ def get_glcm(case,serial, data):
         
         homogeneity = get_homogeneity_feature(matrix_coocurrence)
         homo.append(homogeneity.flatten())
-    save_glcm_feats(case, serial, con, diss, homo, en, corr, asms)
+    
+    features = [con, diss, homo, en, corr, asms]
+
+    save_glcm_feats(case, serial, features)
     return
 
 

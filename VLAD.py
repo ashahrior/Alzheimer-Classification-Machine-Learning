@@ -46,8 +46,8 @@ def getVLADDescriptors(path,visualDictionary,low,high,n):
     for i in range(n):
         print('Data-{}'.format(i+1))
         img = np.load(path + 'data{}.npy'.format(i+1), allow_pickle=True)
-        l, h = fc.get_high_low_gray_level(img, i+1)
-        img = fc.change_image_dynamic_range(img, i+1, l, h)
+        l, h = fc.get_high_low_gray_level(img)
+        img = fc.change_image_dynamic_range(img, l, h)
 
         final_des = list()
         for j in range(low,high):
@@ -137,8 +137,8 @@ def all_descriptors(loc, low, high, n, descriptors, group):
     for i in range(n):
         print('{}-Data-{}'.format(group, i+1))
         img = np.load(loc+'data{}.npy'.format(i+1), allow_pickle=True)
-        l, h = fc.get_high_low_gray_level(img, i+1)
-        img = fc.change_image_dynamic_range(img, i+1, l, h)
+        l, h = fc.get_high_low_gray_level(img)
+        img = fc.change_image_dynamic_range(img, l, h)
 
         final_des = list()
         for j in range(low, high):

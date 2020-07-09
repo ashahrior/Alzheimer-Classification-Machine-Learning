@@ -36,7 +36,7 @@ def slicer(src, case, limit=54):
         file_path = src + '\data{}.npy'
         data = np.load(file_path.format(i), allow_pickle=True)
         x = 1
-        l, h = fc.get_high_low_gray_level(data, i)
+        l, h = fc.get_high_low_gray_level(data)
         data = fc.change_image_dynamic_range(data, i, l, h)
         for d in data:
             imgloc = images + case + '\\{}-Data{}\\'.format(case, i)
@@ -52,7 +52,7 @@ def slicer2(src, case, file_number):
         file_path = src + '\data{}.npy'
         data = np.load(file_path.format(i), allow_pickle=True)
         x = 1
-        l, h = fc.get_high_low_gray_level(data, i)
+        l, h = fc.get_high_low_gray_level(data)
         data = fc.change_image_dynamic_range(data, i, l, h)
         for d in data:
             imgloc = images + case + '\\{}-Data{}\\'.format(case, i)

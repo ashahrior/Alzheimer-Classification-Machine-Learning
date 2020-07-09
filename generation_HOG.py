@@ -1,89 +1,74 @@
-import math
-import sys
+import os
+import time
 
-import cv2
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+
 import skimage
 from skimage import exposure
 from skimage.feature import hog
 from skimage.io import imread, imshow
 from skimage.transform import resize
 
-from functional_modules import data_viewer as dv
-from functional_modules import feature_computation_module as fc
-from functional_modules import file_locations_module as flocate 
+from functional_modules import data_viewer_module as dv
 
+case_type = 'MCI'  # 'CN' # 'AD'
 
-'''
-Select source location of file type to work with. AD / CN / MCI
-'''
-#src = flocate.npy_main_AD + 'data{}.npy'
-#src = flocate.npy_main_CN +  'data{}.npy'
-src = flocate.npy_main_MCI_path + 'data{}.npy'
+resizeRow, resizeCol = 512, 256
+resolution = f"{resizeRow}x{resizeCol}"
 
-# location for saving the hog features
-# Remember to handle the print format
-hog_feat_file_path = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogFeat{}_data{}"
-# location for saving the hog images
-# Remember to handle the print format
-hog_img_target_location = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\{}_hogImg{}_data{}"
+tit = r"{}-HOGfeat-{}{}"
 
-# Select cast type for target location.
-#case_type = 'AD' #done
-#case_type = 'CN'
-case_type = 'MCI'
-resizeRow, resizeCol = 256, 128
+hog_feat_file_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_iHOG\\"
 
-# AD - 54 DONE
-# CN - 115
-# MCI - 133
-# File iteration number. Change it after intervals.
-from_file, to_file = 101, 134
+hog_img_targ_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_HOG_img_"+resolution+"\\"
 
+srcfol = f"E:\\THESIS\ADNI_data\\ADNI1_Annual_2_Yr_3T_306_WORK\\INTEREST_NPY_DATA\\Normalized_NPY\{case_type}_normNPY\\"
 
-for file_serial in range(from_file, to_file):
-    break # remove the break to work
-    file = fc.open_interest_data(src, file_serial)
+start_time = time.time()
 
-    hog_images = []  # list of slices in a volume
-    hog_feats = []  # list of feats per slice in a volume
+os.chdir(srcfol)
 
-    for slices in range(file.shape[0]):
-        imageSlice = file[slices]
-    
+for f in os.listdir():
+    fname, fext = os.path.splitext(f)
+    targ_file = tit.format(fname, resolution, fext)
+    print(f'\n{f} opened')
+    data = np.load(f, allow_pickle=True)
+
+    hog_feats = []
+    #hog_images = []
+
+    for slices in range(data.shape[0]):
+        imageSlice = data[slices]
+
         resolution = str(resizeRow)+'x'+str(resizeCol)
-        #resizeRow, resizeCol = 512, 256
 
         imageSliceResized = skimage.transform.resize(
             imageSlice, (resizeRow, resizeCol))
-        print("{}- File #{} Slice #{}: Resized.".format(case_type, file_serial, slices))
-        
+        print(f'#{slices+1} slice >> resized -', end=' ')
+        m, n = 8, 2
+        ppc = (m, m)
+        cpb = (n, n)
         fd, hog_img = hog(
             imageSliceResized, orientations=9,
-            pixels_per_cell=(8,8), cells_per_block=(2, 2),
+            pixels_per_cell=ppc, cells_per_block=cpb,
             visualize=True, multichannel=False
         )
-        print('{}- File #{} Slice #{}: HOG feat desc and image generated.'.format(case_type, file_serial, slices))
-
+        print('HOG feat generated')
         hog_feats.append(fd)
-        hog_images.append(hog_img)
-
+        #hog_images.append(hog_img)
     hog_feats = np.asarray(hog_feats)
-    hog_images = np.asarray(hog_images)
-    dv.Show(hog_images)
-    break
 
-    np.save(hog_feat_file_path.format( case_type, resolution, case_type, file_serial), hog_feats )
-    print(hog_feat_file_path.format( case_type, resolution, case_type, file_serial), "- Saved" )
+    #hog_images = np.asarray(hog_images)
+    #dv.Show(hog_images)
+    #break
     
-    '''
-    np.save(hog_img_target_location.format(
-        case_type, resolution, case_type, file_serial), hog_images)
-    print(hog_img_target_location.format(
-        case_type, resolution, case_type, file_serial), "- Saved")
-    '''
-    print()
+    np.save(hog_feat_file_path.format(case_type) + targ_file, hog_feats)
+    print(f'{targ_file} hog feat saved.')
+
+e = int(time.time() - start_time)
+print('{:02d}:{:02d}:{:02d}'.format(e // 3600, (e % 3600 // 60), e % 60))
+
 
 '''
     plt.figure('Histogram of Oriented Gradients')

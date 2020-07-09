@@ -7,7 +7,7 @@ import numpy as np
 
 
 ####### Loading Data ######
-def convert_nii_to_npy(address,location,number,title=''):
+def convert_nii_to_npy(address,location,title=''):
     '''
     :param address: Where the nifti file is.
     :param location: Where to save the file .npy
@@ -21,7 +21,7 @@ def convert_nii_to_npy(address,location,number,title=''):
             path = os.path.join(address,f)
             img = nib.load(path)
             img = img.get_data()
-            np.save(location+title+'\\data{}.npy'.format(number+n),img) ##Check The location
+            np.save(location+title+'\\Data{}.npy'.format(n),img) ##Check The location
             n += 1
         except Exception as e:
             pass
@@ -41,7 +41,7 @@ def open_interest_data(address,n):
 
 
 ############# Return Low and High Gray Level###
-def get_high_low_gray_level(img,n):
+def get_high_low_gray_level(img):
     low = 1000
     high = 0
     for i in range(img.shape[0]):
@@ -52,14 +52,11 @@ def get_high_low_gray_level(img,n):
             low = min
         if high < max:
             high = max
-            #print('slice{}-{}: High : {}'.format(n,i,high))
-    print('High Low Returned')
     return low,high
 
 ####### Changing the Dynamic range of the Image ...
-def change_image_dynamic_range(img,n,low,high):
+def change_image_dynamic_range(img,low,high):
     newImg = 255*((img - low)/(high - low))
-    print('Changed Image returned')
     return newImg
 
 ##### Converting into INtegers
@@ -659,7 +656,7 @@ def compute_3D_brightness(img,n):
 
 ###### Normalizing The Inputs ...
 def normalize(img,n):
-    low,high = get_high_low_gray_level(img,n)
+    low,high = get_high_low_gray_level(img)
     Nimg = img/high
     print('Data-{}'.format(n))
     return Nimg
