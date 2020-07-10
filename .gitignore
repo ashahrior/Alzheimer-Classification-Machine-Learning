@@ -12,4 +12,12 @@ interest_data_tuple_extractor.py
 /Data_Visualization/tempCodeRunnerFile.py
 /classifier_modules/__pycache__
 /classifier_modules/tempCodeRunnerFile.py
+data_analysis.py
+data_preparation.py
+glcm_calculation.py
+image_extractor.py
+image_to_npy.py
+interest_data_extractor.py
+interest_data_tuples.py
+main_runner.py
 
