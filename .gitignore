@@ -6,6 +6,7 @@ interest_data_tuple_extractor.py
 *.jpg
 /__pycache__
 /.vscode
+/junk
 /functional_modules/__pycache__
 /functional_modules/tempCodeRunnerFile.py
 /Data_Visualization/__pycache__
@@ -20,4 +21,6 @@ image_to_npy.py
 interest_data_extractor.py
 interest_data_tuples.py
 main_runner.py
+histogram_matching.py
+PlottingData.ipynb
 
