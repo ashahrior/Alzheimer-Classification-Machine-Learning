@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd 
 
 import skimage
 from skimage import exposure
@@ -26,6 +27,11 @@ hog_feat_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY
 hog_img_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_HOG_img_"+resolution+"\\"
 
 norm_npy_fold = "E:\\THESIS\ADNI_data\\ADNI1_Annual_2_Yr_3T_306_WORK\\INTEREST_NPY_DATA\\Normalized_NPY\{}_normNPY\\"
+
+imp_hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\imputed_HOG\\"
+
+limit = 69
+
 
 def calculate_HOG_feats():
     global resolution
@@ -70,7 +76,7 @@ def calculate_HOG_feats():
 
 ##### Applying PCA method
 def apply_PCA(feature, no_comp):
-    print('Applying PCA for #{} components'.format(no_comp))
+    print('applying PCA #{}'.format(no_comp))
     X = StandardScaler().fit_transform(feature)
     pca = PCA(n_components=no_comp)
     pcomp = pca.fit_transform(X)
@@ -78,102 +84,153 @@ def apply_PCA(feature, no_comp):
     return pcomp
 
 
-def generate_HOG_array(case_type, number_of_files, target, no_comp, F):
-    '''
-    :param case_type: type of case being handled- AD/CN/MCI
-    :param number_of_files: number of data files
-    :param target: 1 for AD, 2 for CN and 3 for MCI
-    :param no_comp: number of PCA
-    :param F: Feature Array, just send a list
-    :return: returns the updated feature list
-    '''
-    hog_feat_file_form = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_data\{}_HOG_256x128\256x128_hogFeat{}_data{}.npy"
-    print('Inside generate_HOG_array() function with case type-{} for number of components-{}'.format(case_type, no_comp))
-    print()
+def get_max_slice(src):
+    """get the maxmimum number of slices of any file for overall dataset
 
-    for i in range(number_of_files):
-        hog_data = np.load(hog_feat_file_form.format(
-            case_type, case_type, i+1), allow_pickle=True)
-        print('HOG data for', hog_feat_file_form.format(
-            case_type, case_type, i+1), 'loaded.')
-
-        comp = apply_PCA(hog_data, no_comp)
-        print('PCA applied for {} case in file #{} for {} components.'.format(
-            case_type, i+1, no_comp))
-
-        row = []
-        for j in range(111):
-            for k in range(no_comp):
-                row.append(comp[j][k])
-        row.append(target)
-
-        F.append(row)
-        print('Row for case-%s for file #%d with %d components appended.' %
-              (case_type, i+1, no_comp))
-        print()
-    return F
+    Args:
+        src ([str]): [source location of the data files]
+    """
+    cases = ['AD', 'CN', 'MCI']
+    limit = 0
+    for c in cases:
+        os.chdir(src.format(c))
+        print(f'\nInside {c}')
+        for file in os.listdir():
+            data = np.load(file)
+            slices = data.shape[0]
+            print(f'{file} - {slices}',end=' --- ')
+            limit = max(slices, limit)
+    return limit
 
 
-def merge_HOG_array(totalComp):
-    '''
-    :param totalComp: highest values of PCA
-    :return:
-    '''
-    n_AD_file = 54  # Total datafiles of AD
-    n_CN_file = 115
-    n_MCI_file = 133
+def add_nan(data):
+    """[append nan value to files]
 
-    hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\HOG_merged\HOG_merged_feat{}.npy'
+    Args:
+        data ([ndarray]): [source data file]
 
-    start, end = 100, totalComp
+    Returns:
+        [ndarray]: [numpy array with nan appended]
+    """
+    global limit
+    print(data.shape[0])
+    nan_data = np.zeros((limit - data.shape[0], data.shape[1]))
+    nan_data[:] = np.NaN
+    padded_data = np.vstack([data, nan_data])
+    return padded_data
 
-    #start, end = 90, 100
-    #start, end = 80, 90
-    #start, end = 70, 80
-    #start, end = 60, 70
+
+def interpolate_data(data):
+    """[Interpolation of passed to replace null values]
+
+    Args:
+        data ([ndarray]): [a numpy array]
+
+    Returns:
+        [dataframe]: [an interpolated dataframe]
+    """
+    df = pd.DataFrame(data)
+    return df.interpolate(method='spline', order=1)
+
+
+def perform_data_generation(cases=['AD', 'CN', 'MCI']):
+    global limit
+    for c in cases:
+        os.chdir(hog_feat_fold.format(c))
+        count = 0
+        for file in os.listdir():
+            print(file, '->', end='')
+            fname, fext = os.path.splitext(file)
+            data = np.load(file, allow_pickle=True)
+
+            nan_data = add_nan(data)
+            print(f'{fname} NaN addition done.')
+
+            interpolated_df = interpolate_data(nan_data)
+            print(f'{fname} interpolation done.')
+
+            interpolated_data = interpolated_df.to_numpy()
+            case_folder = imp_hog_fold+f"{c}_impHOG\\"
+            np.save(case_folder + f"{fname}-imp{fext}", interpolated_data)
+
+            print(f"{fname}-imp{fext} saved.")
+            count += 1
+
+        print(f'{c} - {count} done')
+
+
+
+def generate_HOG_array(case_type, no_comp):
+
+    target = {
+        'AD': 1, 'CN': 2, 'MCI': 3
+    }
+    
+    case_folder = imp_hog_fold + f"{case_type}_impHOG\\"
+    os.chdir(case_folder)
+    
+    print("Inside generate_HOG_array() - CASE-{} N_Comp-{}\n".format(case_type, no_comp))
+    F = []
+    for file in os.listdir():
+        print(file)
+        fname, fext = os.path.splitext(file)
+        data = np.load(file, allow_pickle=True)
+        comp = apply_PCA(data, no_comp)
+        print(f'#{no_comp} comp applied',end='-')
+        flat = comp.flatten()
+        flat = np.append(flat, [target[case_type]])
+        F.append(flat)
+        print('appended')
+    return np.vstack(F)
+
+
+def merge_HOG_array():
+    
+    hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\HOG_merged\HOG54_merged_feat{}.npy'
+    
+    global limit
+    totalcomp = limit  #69
+    
+    start, end = 60, totalcomp
     #start, end = 50, 60
     #start, end = 40, 50
     #start, end = 30, 40
     #start, end = 20, 30
     #start, end = 10, 20
-    #start, end = 0, 10
+    #start, end = 1, 10
 
     for i in range(start, end):
-
-        F = []
-
+    
         case_type = 'AD'
-        print('Initiating AD for #{} components'.format(i+1))
-        print()
-        F = generate_HOG_array(case_type, n_AD_file, 1, i+1, F)
-        print('HOG-AD feature list for #{} component stored.'.format(i+1))
-        print()
-        print()
+        AD = generate_HOG_array(case_type, i+1)
+        print('HOG-AD  #{} components stored.\n\n'.format(i+1))
 
         case_type = 'CN'
-        print('Initiating CN for #{} components'.format(i+1))
-        print()
-        F = generate_HOG_array(case_type, n_CN_file, 2, i+1, F)
-        print('HOG-CN feature list for #{} component stored.'.format(i+1))
-        print()
-        print()
+        CN = generate_HOG_array(case_type, i+1)
+        print('HOG-CN  #{} components stored.\n\n'.format(i+1))
 
         case_type = 'MCI'
-        print('Initiating MCI for #{} components'.format(i+1))
-        print()
-        F = generate_HOG_array(case_type, n_MCI_file, 3, i+1, F)
-        print('HOG-MCI feature list for #{} component stored.'.format(i+1))
-        print()
-        print()
+        MCI = generate_HOG_array(case_type, i+1)
+        print('HOG-MCI #{} components stored.\n\n'.format(i+1))
+        
+        F = [AD, CN, MCI]
+        F = np.vstack(F)
 
         np.save(hog_merged_file.format(i+1), F)
-        print('HOG merged feature list .npy for #{} component saved.'.format(i+1))
-        print()
-        print()
+        print('HOG-merged-#{} component saved.'.format(i+1))
         os.system('cls')
 
-    print('All The HOG Features Arrays saved Successfully.')
+    print('All HOG feats saved.')
 
 
 if __name__ == "__main__":
-    pass
+    start_time = time.time()
+    #limit = get_max_slice(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_iHOG")
+    #print(limit) #obtained result 69
+    
+    #perform_data_generation()
+
+    merge_HOG_array()
+
+    e = int(time.time() - start_time)
+    print('\nTime elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))

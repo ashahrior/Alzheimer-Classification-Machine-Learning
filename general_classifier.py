@@ -1,5 +1,6 @@
 import xlsxwriter as xl
 import time
+import os, re
 
 import numpy as np
 
@@ -115,16 +116,18 @@ def classify_glcm(model, book, sheet, path):
     #print(max(scores))
 
 
-def classify_hog(model, book, sheet, limit):    
+def classify_hog(model, book, sheet):
     line = 1
     scores = []
-    for serial in range(1,limit):
-        path = flocate.HOG_all_case_feats_form.format(serial)
-        X, Y = prepare_data(path)
+    path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\HOG_merged\\"
+    os.chdir(path)
+    for file in os.listdir():
+        serial = int(re.findall("\d+", file)[1])
+        X, Y, limit = prepare_data(file)
         line, best_scores = train_model(model, X, Y, book, sheet, line, serial, False)
         scores.append(best_scores)
         print('Serial #', serial, 'done.')
-    print(scores)
+    print('\nMAX-', max(scores)[0]*100, '%')
 
 
 def classify_vlad(model, book, sheet, path):  
@@ -143,22 +146,22 @@ if __name__ == "__main__":
     #model = knbr
     #model = svc
     #model = rf     # time consuming - 36 combos
-    model = lda    # time consuming - 210 combos
+    #model = lda    # time consuming - 210 combos
     #model = log     # time consuming - 336 combos
     
-    title = model.title+'_cleanGLCM54_x'
-    #title = model.title+'_hog'
+    #title = model.title+'_cleanGLCM54_x'
+    title = model.title+'_hog54clean'
     #title = model.title +'_vlad50'
 
     excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\'
     book, sheet = create_excel(excel_loc, title, model)
 
     # function for handling glcm
-    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\all_clean_glcm_54.npy"
-    classify_glcm(model, book, sheet, glcm_path)
+    #glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\all_clean_glcm_54.npy"
+    #classify_glcm(model, book, sheet, glcm_path)
     
     # function for handling hog
-    #classify_hog(model, book, sheet, limit)
+    classify_hog(model, book, sheet)
 
     # function for handling vlad
     #vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
