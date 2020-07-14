@@ -145,7 +145,7 @@ if __name__ == "__main__":
     #model = gauss
     #model = knbr
     #model = svc
-    #model = rf     # time consuming - 36 combos
+    model = rf     # time consuming - 36 combos
     #model = lda    # time consuming - 210 combos
     #model = log     # time consuming - 336 combos
     
