@@ -82,7 +82,7 @@ def train_model(classifier, X, Y, book, sheet, line=1, serial=1, doCompo=False):
                 best_score = score_model
                 _scores.append(best_score)
                 limit = len(headers) - 3
-                for i in range(len(headers)-3):
+                for i in range(limit):
                     sheet.write(line, i, combo_list[c][i])
                 sheet.write(line, (len(headers) - 3), serial)
                 sheet.write(line, (len(headers)-2), best_score*100)
@@ -145,30 +145,30 @@ if __name__ == "__main__":
     #model = gauss
     #model = knbr
     #model = svc
-    model = rf     # time consuming - 36 combos
+    #model = rf     # time consuming - 36 combos
     #model = lda    # time consuming - 210 combos
-    #model = log     # time consuming - 336 combos
-    
-    #title = model.title+'_cleanGLCM54_x'
-    title = model.title+'_hog54clean'
-    #title = model.title +'_vlad50'
+    model = log     # time consuming - 336 combos
+    for i in range(2,6):
+        title = model.title+f'_claheGLCM54_{i}'
+        #title = model.title+'_hog54clean'
+        #title = model.title +'_vlad50'
 
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\'
-    book, sheet = create_excel(excel_loc, title, model)
+        excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\clahe\\'
+        book, sheet = create_excel(excel_loc, title, model)
 
-    # function for handling glcm
-    #glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\all_clean_glcm_54.npy"
-    #classify_glcm(model, book, sheet, glcm_path)
-    
-    # function for handling hog
-    classify_hog(model, book, sheet)
+        # function for handling glcm
+        glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\clahe_glcm_54.npy"
+        classify_glcm(model, book, sheet, glcm_path)
+        
+        # function for handling hog
+        #classify_hog(model, book, sheet)
 
-    # function for handling vlad
-    #vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
-    #classify_vlad(model, book, sheet)
-    
-    book.close()
-    print()
+        # function for handling vlad
+        #vlad50_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\vlad50_all_cases.npy"
+        #classify_vlad(model, book, sheet)
+        
+        book.close()
+        print('>>Epoch',i,'done.\n')
 
     e = int(time.time() - start_time)
     print('{:02d}:{:02d}:{:02d}'.format(e // 3600, (e % 3600 // 60), e % 60))
