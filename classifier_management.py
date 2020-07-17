@@ -63,7 +63,7 @@ class DTreeModel(Classifier):
 
 
 class GaussianNBModel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'GaussNB_'
         var_smoothing = 0.000000001
         self.__parameters_list = [var_smoothing]
@@ -78,7 +78,7 @@ class GaussianNBModel(Classifier):
 
 
 class KNeighborModel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'KNbr_'
         self.__parameters_list = [['uniform', 'distance'], ['auto', 'ball_tree', 'kd_tree', 'brute']]
         self.__combos = [list(x) for x in list(itertools.product(*self.__parameters_list))]
@@ -92,7 +92,7 @@ class KNeighborModel(Classifier):
 
 
 class LDAmodel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'LDA_'
         solver = ['svd', 'lsqr', 'eigen']
         shrinkage = ['auto', 0.1, 0.25, 0.5, 0.75, 0.99, None]
@@ -117,7 +117,7 @@ class LDAmodel(Classifier):
 
 
 class LogRegModel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'LogReg_'
         penalty = ['l1', 'l2', 'elasticnet', 'none']
         dual = [False, True]
@@ -146,7 +146,7 @@ class LogRegModel(Classifier):
 
 
 class RForestModel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'RForest_'
         self.__parameters_list = [ ['uniform', 'distance'], ['auto', 'ball_tree', 'kd_tree', 'brute'] ]
         self.__combos = [
@@ -164,7 +164,7 @@ class RForestModel(Classifier):
 
 
 class SVCmodel(Classifier):
-    def __init__(self, title, parameters_list, combos, headers):
+    def __init__(self):
         self.__title = 'SVC_'
         self.__parameters_list = [['linear', 'poly', 'rbf', 'sigmoid'], ['ovo', 'ovr']]
         self.__combos = [list(x) for x in list(itertools.product(*self.__parameters_list))]
@@ -244,32 +244,53 @@ def train_model(df, headers, classifier, X, Y, serial=1, doCompo=False):
     return df
 
 
-def classify_glcm(model, path, excel_loc):
+def classify_glcm(model, path):
     X, Y, limit = prepare_data(path)
     line = 1
     scores = []
-    title = model.get_title()
+    
     headers = model.get_headers()
     df = pd.DataFrame(columns=headers)
-    #limit = 2
+    
     for serial in range(1, limit):
         df = train_model(df, headers, model, X, Y, serial, True)
         print('Serial #', serial, 'done.')
-    df = df.sort_values(by=['%-ACCURACY'], ascending=False)
-    save_as = excel_loc+f"{title}-test.xlsx"
-    df.to_excel(save_as, index=False)
+    return df
     
 
+def save_excel(model, dfs, excel_loc):
+    title = model.get_title()
+    save_as = excel_loc + f"{title}-clahe.xlsx"
+    writer = pd.ExcelWriter(save_as, engine='xlsxwriter')
+    counter = 1
+    for df in dfs:
+        df = df.sort_values(by=['%-ACCURACY'], ascending=False)
+        df.to_excel(writer, sheet_name=f'Sheet{counter}', index=False)
+        counter += 1
+    writer.save()
+    return
 
 if __name__ == "__main__":    
     start_time = time.time()
 
-    f = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\clahe_glcm_54.npy"
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\'
+    file_loc = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\clahe_glcm_54.npy"
+    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\80-20-clahe\\'
 
-    model = DTreeModel()
-
-    classify_glcm(model, f, excel_loc)
+    #model = DTreeModel()
+    model = GaussianNBModel()
+    #model = KNeighborModel()
+    #model = RForestModel()
+    #model = SVCmodel()
+    #model = LDAmodel()
+    #model = LogRegModel()
     
+    dfs = []
+    
+    for i in range(1,6):
+        dfs.append(classify_glcm(model, file_loc))
+        print(f'Epoch {i} done\n')
+    
+    save_excel(model, dfs, excel_loc)
+
     e = int(time.time() - start_time)
     print('{:02d}:{:02d}:{:02d}'.format(e // 3600, (e % 3600 // 60), e % 60))
