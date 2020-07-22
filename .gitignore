@@ -4,6 +4,7 @@ test.py
 tempCodeRunnerFile.py
 interest_data_tuple_extractor.py
 *.jpg
+*.txt
 /__pycache__
 /.vscode
 /junk
@@ -24,4 +25,4 @@ main_runner.py
 histogram_matching.py
 PlottingData.ipynb
 general_classifier.py
-
+/performance_metrics

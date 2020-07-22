@@ -1,5 +1,6 @@
 import os
 import time
+import re
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,21 +18,24 @@ from sklearn.preprocessing import StandardScaler
 from functional_modules import data_viewer_module as dv
 
 cases = ["AD", "CN", "MCI"]
+#cases = ["AD"]
 
-resizeRow, resizeCol = 512, 256
+resizeRow, resizeCol = 256, 128
 resolution = f"{resizeRow}x{resizeCol}"
-title = r"{}-HOGfeat-{}{}"
+title = r"{}-{}-CLAHE-HOG-{}"
 
-hog_feat_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_iHOG\\"
+hog_feat_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\{}_claheHOG\\"
 
-hog_img_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_HOG_img_"+resolution+"\\"
+#hog_img_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_HOG_img_"+resolution+"\\"
 
-norm_npy_fold = "E:\\THESIS\ADNI_data\\ADNI1_Annual_2_Yr_3T_306_WORK\\INTEREST_NPY_DATA\\Normalized_NPY\{}_normNPY\\"
+norm_npy_fold = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_{}npy\\"
 
-imp_hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\imputed_HOG\\"
+#imp_hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\imputed_HOG\\"
 
 limit = 69
 
+def find_all_HOG_feats():
+    return
 
 def calculate_HOG_feats():
     global resolution
@@ -39,15 +43,14 @@ def calculate_HOG_feats():
         os.chdir(norm_npy_fold.format(cs))
         for f in os.listdir():
             fname, fext = os.path.splitext(f)
-            hog_file_name = title.format(fname, resolution, fext)
+            serial = re.findall('\d+', fname)[0]
+            hog_file_name = title.format(cs, serial, resolution, fext)
             print(f'\n{f} opened')
             data = np.load(f, allow_pickle=True)
             hog_feats = []
-            #hog_images = []
+            hog_images = []
             for slices in range(data.shape[0]):
                 imageSlice = data[slices]
-
-                resolution = str(resizeRow)+'x'+str(resizeCol)
 
                 imageSliceResized = skimage.transform.resize(
                     imageSlice, (resizeRow, resizeCol))
@@ -60,21 +63,20 @@ def calculate_HOG_feats():
                     pixels_per_cell=ppc, cells_per_block=cpb,
                     visualize=True, multichannel=False
                 )
-                print('HOG feat generated')
+                print('HOG gained')
                 hog_feats.append(fd)
                 #hog_images.append(hog_img)
-            hog_feats = np.asarray(hog_feats)
 
+            hog_feats = np.asarray(hog_feats)
             #hog_images = np.asarray(hog_images)
             #dv.Show(hog_images)
             #break
-
             np.save(hog_feat_fold.format(cs) + hog_file_name, hog_feats)
             print(f'{hog_file_name} hog feat saved.')
+        #break
     return
 
 
-##### Applying PCA method
 def apply_PCA(feature, no_comp):
     print('applying PCA #{}'.format(no_comp))
     X = StandardScaler().fit_transform(feature)
@@ -150,14 +152,18 @@ def perform_data_generation(cases=['AD', 'CN', 'MCI']):
             print(f'{fname} interpolation done.')
 
             interpolated_data = interpolated_df.to_numpy()
-            case_folder = imp_hog_fold+f"{c}_impHOG\\"
-            np.save(case_folder + f"{fname}-imp{fext}", interpolated_data)
+            
+            #case_folder = imp_hog_fold + f"{c}_impHOG\\"
+            case_folder = hog_feat_fold.format(c)
+            
+            #np.save(case_folder + f"{fname}-imp{fext}", interpolated_data)
+            np.save(case_folder+file, interpolated_data)
 
-            print(f"{fname}-imp{fext} saved.")
+            #print(f"{fname}-imp{fext} saved.")
+            print(f'Interpolated {file} saved.')
             count += 1
 
         print(f'{c} - {count} done')
-
 
 
 def generate_HOG_array(case_type, no_comp):
@@ -186,7 +192,7 @@ def generate_HOG_array(case_type, no_comp):
 
 def merge_HOG_array():
     
-    hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\HOG_merged\HOG54_merged_feat{}.npy'
+    hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\claheHOG_merged\HOG_clahe_merged{}.npy'
     
     global limit
     totalcomp = limit  #69
@@ -225,12 +231,19 @@ def merge_HOG_array():
 
 if __name__ == "__main__":
     start_time = time.time()
-    #limit = get_max_slice(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_iHOG")
-    #print(limit) #obtained result 69
     
+    # step-1
+    #calculate_HOG_feats()
+
+    # step-2
+    #limit = get_max_slice(hog_feat_fold)
+    #print('\n\n',limit) #obtained result 69
+    
+    # step-3
     #perform_data_generation()
 
-    merge_HOG_array()
+    # step-4
+    #merge_HOG_array()
 
     e = int(time.time() - start_time)
     print('\nTime elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
