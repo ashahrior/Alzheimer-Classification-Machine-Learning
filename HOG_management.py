@@ -12,10 +12,8 @@ from skimage.feature import hog
 from skimage.io import imread, imshow
 from skimage.transform import resize
 
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-
 from functional_modules import data_viewer_module as dv
+
 
 cases = ["AD", "CN", "MCI"]
 #cases = ["AD"]
@@ -24,7 +22,11 @@ resizeRow, resizeCol = 256, 128
 resolution = f"{resizeRow}x{resizeCol}"
 title = r"{}-{}-CLAHE-HOG-{}"
 
+hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\\"
+
 hog_feat_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\{}_claheHOG\\"
+
+big_hogs_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\Big_HOGs\\"
 
 #hog_img_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\{}_HOG_img_"+resolution+"\\"
 
@@ -32,10 +34,12 @@ norm_npy_fold = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_
 
 #imp_hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\imputed_HOG\\"
 
+
+hog
+
+
 limit = 69
 
-def find_all_HOG_feats():
-    return
 
 def calculate_HOG_feats():
     global resolution
@@ -75,15 +79,6 @@ def calculate_HOG_feats():
             print(f'{hog_file_name} hog feat saved.')
         #break
     return
-
-
-def apply_PCA(feature, no_comp):
-    print('applying PCA #{}'.format(no_comp))
-    X = StandardScaler().fit_transform(feature)
-    pca = PCA(n_components=no_comp)
-    pcomp = pca.fit_transform(X)
-
-    return pcomp
 
 
 def get_max_slice(src):
@@ -190,43 +185,58 @@ def generate_HOG_array(case_type, no_comp):
     return np.vstack(F)
 
 
-def merge_HOG_array():
-    
-    hog_merged_file = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\claheHOG_merged\HOG_clahe_merged{}.npy'
-    
-    global limit
-    totalcomp = limit  #69
-    
-    start, end = 60, totalcomp
-    #start, end = 50, 60
-    #start, end = 40, 50
-    #start, end = 30, 40
-    #start, end = 20, 30
-    #start, end = 10, 20
-    #start, end = 1, 10
+def append_HOGs(src, targ, case):
 
-    for i in range(start, end):
-    
-        case_type = 'AD'
-        AD = generate_HOG_array(case_type, i+1)
-        print('HOG-AD  #{} components stored.\n\n'.format(i+1))
+    target = {
+        'AD': 1, 'CN': 2, 'MCI': 3
+    }
+    os.chdir(src)
+    big = np.array([])
+    for file in os.listdir():
+        print(file, end=' - ')
+        data = np.load(file, allow_pickle=True)
+        data = data.flatten()
+        data = np.append(data, target[case])
+        big = data
+        break
+    counter = 0
+    size = (big.size * big.itemsize) / 1024 / 1024
+    print(size)
+    for file in os.listdir():
+        if counter == 0:
+            counter = 1
+            continue
+        print(file, end=' - ')
+        data = np.load(file, allow_pickle=True)
+        data = data.flatten()
+        data = np.append(data, target[case])
+        big = np.vstack((big, data))
+        size = (big.size * big.itemsize) / 1024 / 1024
+        print(size)
+    print('Append done', ((big.size * big.itemsize) / 1024 / 1024))
+    file = targ + f'{case}-HOG.npy'
+    np.save(file, big)
+    return
 
-        case_type = 'CN'
-        CN = generate_HOG_array(case_type, i+1)
-        print('HOG-CN  #{} components stored.\n\n'.format(i+1))
 
-        case_type = 'MCI'
-        MCI = generate_HOG_array(case_type, i+1)
-        print('HOG-MCI #{} components stored.\n\n'.format(i+1))
-        
-        F = [AD, CN, MCI]
-        F = np.vstack(F)
+def merge_HOGs(src, targ):
 
-        np.save(hog_merged_file.format(i+1), F)
-        print('HOG-merged-#{} component saved.'.format(i+1))
-        os.system('cls')
+    os.chdir(src)
+    big = np.array([])
 
-    print('All HOG feats saved.')
+    ll = []
+
+    for file in os.listdir():
+        print(file, end=' - ')
+        data = np.load(file)
+        size = (data.size * data.itemsize) / 1024 / 1024
+        print(size, end=' - ')
+        ll.append(data)
+        print('appended')
+    big = np.vstack(ll)
+    np.save('CLAHE-HOG-MERGED.npy', big)
+    print('saved')
+    return
 
 
 if __name__ == "__main__":
@@ -243,7 +253,12 @@ if __name__ == "__main__":
     #perform_data_generation()
 
     # step-4
-    #merge_HOG_array()
+    #case = 'MCI'
+    #append_data(hog_feat_fold.format(case), big_hogs_fold, case)
+
+    # step-5
+    #src = targ = big_hogs_fold
+    #merge_HOGs(src,targ)
 
     e = int(time.time() - start_time)
     print('\nTime elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
