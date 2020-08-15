@@ -1,104 +1,149 @@
 import time
 import itertools
-import sys
+import os, sys
 
 import cv2
 import numpy as np
+import pandas as pd
 import pickle
 from sklearn import model_selection
 from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
 
-from functional_modules import feature_computation_module as fc
+
+npy_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_{}npy\\"
+
+vlad_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\\"
+
+orb_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\{}-ORB\\"
 
 
-feature_count = 100
+### ORB generation process starts
 
-def VLAD(X, visualDictionary):
-    predictedLabels = visualDictionary.predict(X)
-    centers = visualDictionary.cluster_centers_
-    labels = visualDictionary.labels_
-    k = visualDictionary.n_clusters
+def add_nan(data, limit):
+    """[append nan value to files]
 
-    m,d = X.shape
-    V=np.zeros([k,d])
-    #computing the differences
+    Args:
+        data ([ndarray]): [source data file]
 
-    # for all the clusters (visual words)
-    for i in range(k):
-        # if there is at least one descriptor in that cluster
-        if np.sum(predictedLabels==i)>0:
-            # add the diferences
-            V[i]=np.sum(X[predictedLabels==i,:]-centers[i],axis=0)
-
-    V = V.flatten()
-    # power normalization, also called square-rooting normalization
-    V = np.sign(V)*np.sqrt(np.abs(V))
-
-    # L2 normalization
-    V = V/np.sqrt(np.dot(V,V))
-    return V
+    Returns:
+        [ndarray]: [numpy array with nan appended]
+    """
+    nan_data = np.zeros((limit - data.shape[0], data.shape[1]))
+    nan_data[:] = np.NaN
+    padded_data = np.vstack([data, nan_data])
+    return padded_data
 
 
-def getVLADDescriptors(path,visualDictionary,low,high,n):
-    descriptors=list()
-    idImage =list()
-    for i in range(n):
-        print('Data-{}'.format(i+1))
-        img = np.load(path + 'data{}.npy'.format(i+1), allow_pickle=True)
-        l, h = fc.get_high_low_gray_level(img)
-        img = fc.change_image_dynamic_range(img, l, h)
+def interpolate_data(data):
+    """[Interpolation of passed to replace null values]
 
-        final_des = list()
-        for j in range(low,high):
-            cv2.imwrite('photo.jpg',img[j])
-            img1 = cv2.imread('photo.jpg',0)
-            kp, des = describeORB(img1)
-            
-            if des is not None:
-                r = des.shape[0]
-                c = des.shape[1]
-                row = list()
-                if r>=feature_count:
-                    for k in range(feature_count):
-                        for m in range(c):
-                            row.append(des[k,m])
-                else:
-                    for k in range(r):
-                        for m in range(c):
-                            row.append(des[k,m])
+    Args:
+        data ([ndarray]): [a numpy array]
 
-                    for k in range(feature_count-r):
-                        for m in range(c):
-                            row.append(0)
+    Returns:
+        [dataframe]: [an interpolated dataframe]
+    """
+    df = pd.DataFrame(data)
+    interpolated = df.interpolate(method='linear')
+    return interpolated.to_numpy()
 
-            row = np.asarray(row)
-            final_des.append(row)
-        else:
-            row = list()
 
-            for k in range(feature_count):
-                    for m in range(32):
-                        row.append(0)
+def perform_data_generation(data, limit):
+    nan_data = add_nan(data, limit)
+    interpolated_data = interpolate_data(nan_data)
+    return interpolated_data
 
-            row = np.asarray(row)
-            final_des.append(row)
 
-        final_des = np.asarray(final_des)
-        print('des calculated..')
-
-        print('VLAD-method called ..')
-        v=VLAD(final_des,visualDictionary)
-        print('VLAD recieved...')
-        descriptors.append(v)
-        idImage.append(i)
-
-    #list to array
-    descriptors = np.asarray(descriptors)
+def get_ORBz(data):
+    orb = cv2.ORB_create()
+    key_points, descriptors = orb.detectAndCompute(data, None)
     return descriptors
 
 
-def  kMeansDictionary(training, k):
+def get_file_descriptors(fname, data):
+    file_descriptors = np.array([])
+    flag = False
+    for slice in data:
+        limit = 413
+        descriptor = get_ORBz(slice)
+        #print(fname,x,descriptor.shape, end=' -> ')
+
+        modified_descriptor = perform_data_generation(descriptor, limit)
+        slice_desc = modified_descriptor.flatten()
+
+        if flag == False:
+            file_descriptors = [slice_desc]
+            flag = True
+            continue
+
+        file_descriptors = np.concatenate((file_descriptors, [slice_desc]))
+
+    file_descriptors = np.array(file_descriptors)
+    print(fname, file_descriptors.shape, end='->')
+    return file_descriptors
+
+
+def get_descriptors(case='AD'):
+    os.chdir(npy_data_path.format(case))
+    case_descriptors = []
+    
+    for file in os.listdir():
+        fname, fext = os.path.splitext(file)
+        data = np.load(file, allow_pickle=True)
+        
+        file_descriptors = get_file_descriptors(fname, data)
+        
+        limit = 69
+        file_descriptors = perform_data_generation(file_descriptors, limit)
+        print(file_descriptors.shape)
+        file_descriptors = file_descriptors.flatten()
+        
+        print(file_descriptors, end=' -')
+        case_descriptors.append(file_descriptors)
+        print('done\n')
+    return case_descriptors
+
+
+def generate_ORBz():
+    cases = ['AD', 'CN', 'MCI']
+    for case in cases:
+        case_descriptors = get_descriptors(case)
+        case_descriptors = np.array(case_descriptors).astype('uint8')
+        print(case_descriptors.shape)
+        print(case_descriptors)
+        save_file = vlad_data_path + f'{case}-ORB.npy'
+        np.save(save_file, case_descriptors)
+    return
+
+
+def merge_ORBz():
+    ad_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\AD-ORB.npy"
+    cn_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\CN-ORB.npy"
+    mci_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\MCI-ORB.npy"
+
+    ad_data = np.load(ad_orb, allow_pickle=True)
+    print('AD-ORB loaded.')
+    cn_data = np.load(cn_orb, allow_pickle=True)
+    print('CN-ORB loaded.')
+    mci_data = np.load(mci_orb, allow_pickle=True)
+    print('MCI-ORB loaded.')
+
+    merged_orb = np.vstack([ad_data, cn_data, mci_data])
+    print('ORBz merged.')
+
+    save_file = vlad_data_path + "ORB_ad-cn-mci.npy"
+    np.save(save_file, merged_orb)
+    print('ORB_ad-cn-mci.npy saved.')
+
+    return
+
+### ORB generation process ends
+
+
+### Generation of visual dictionary starts
+
+def generate_kMeansDict(training, k):
     '''
     :param training: Descriptors obtained from SIFT,ORB, or something else
     :param k: number of visual words or clusters..
@@ -106,232 +151,148 @@ def  kMeansDictionary(training, k):
     '''
     #K-means algorithm
     print('Inside kMeansDictionary function.')
-    est = KMeans(n_clusters=k,init='k-means++',tol=0.0001,verbose=1).fit(training)
-    #centers = est.cluster_centers_
-    #labels = est.labels_
-    #est.predict(X)
-    print('Exiting kMeansDictionary')
+    est = KMeans(n_clusters=k, init='k-means++', verbose=1).fit(training)
+    print('k-means Dictionary generated.')
     return est
 
 
-def describeORB( image):
-    #An efficient alternative to SIFT or SURF
-    #doc http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_feature2d/py_orb/py_orb.html
-    #ORB is basically a fusion of FAST keypoint detector and BRIEF descriptor
-    #with many modifications to enhance the performance
-    orb=cv2.ORB_create()
-    kp, des=orb.detectAndCompute(image, None) #Image should be .jpeg format
-    return kp,des
+def get_visual_dict(path):
+    data = np.load(path, allow_pickle=True)
+    print('ORB_ad-cn-mci.npy shape->', data.shape)
+    k = 16
+    visual_dict = generate_kMeansDict(data, k)
+    print("Visual dictionary obtained.")
 
-
-def all_descriptors(loc, low, high, n, descriptors, group):
-    '''
-    :param loc: Where the files are
-    :param low: lowest number of the slice that would be selected - 40
-    :param high: highest number of the slice that would be selected - 150+1
-    :param n: numbers of files in the location
-    :return: a list of descriptors ...
-    '''
-    size = 0
-    h_len = 0
-    for i in range(n):
-        print('{}-Data-{}'.format(group, i+1))
-        img = np.load(loc+'data{}.npy'.format(i+1), allow_pickle=True)
-        l, h = fc.get_high_low_gray_level(img)
-        img = fc.change_image_dynamic_range(img, l, h)
-
-        final_des = list()
-        for j in range(low, high):
-            cv2.imwrite('photo.jpg', img[j])
-            img1 = cv2.imread('photo.jpg', 0)
-            kp,des = describeORB(img1)
-            
-            #print(des.shape)
-            '''
-            if len(kp) > h_len:
-                h_len = len(kp)
-                print(h_len)
-            '''
-
-            if des is not None:
-                r = des.shape[0]
-                c = des.shape[1]
-                #size = size + 50*c
-                row = list()
-                if r>=feature_count:
-                    for k in range(feature_count):
-                        for m in range(c):
-                            row.append(des[k,m])
-                else:
-                    for k in range(r):
-                        for m in range(c):
-                            row.append(des[k,m])
-
-                    for k in range(feature_count-r):
-                        for m in range(c):
-                            row.append(0)
-
-                row = np.asarray(row)
-                final_des.append(row)
-            else:
-                row = list()
-                for k in range(feature_count):
-                    for m in range(32):
-                        row.append(0)
-
-                row = np.asarray(row)
-                final_des.append(row)
-
-        final_des = np.asarray(final_des)
-        descriptors.append(final_des)
-
-        #print('Total Size of Descriptors: {} MB'.format(size/128318))
-        #c = input('Enter for next: ')
-
-    #descriptors = list(itertools.chain.from_iterable(descriptors)) #Flatten
-    #descriptors = np.asarray(descriptors)
-    #print(h_len)
-    return descriptors
-
-
-#################### 1. Making Ready for All_features ########
-def get_all_descriptors(low, high):
-    des = list()
-    total = 0
-    print('#######################')
-    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
-    n = 54
-    total += n
-    des = all_descriptors(loc, low, high, n, des, 'AD')
-    #beeper()
-    #input('AD complete. Enter to continue >>')
-
-
-    print('#######################')
-    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
-    n = 54#115
-    total += n
-    des = all_descriptors(loc, low, high, n, des, 'CN')
-    #beeper()
-    #input('CN complete. Enter to continue >>')
-
-
-    print('#######################')
-    loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
-    n = 54#133
-    total += n
-    des = all_descriptors(loc, low, high, n, des, 'MCI')
-    #beeper()
-    #input('MCI complete. Enter to continue >>')
-
-
-    des = list(itertools.chain.from_iterable(des)) #Flatten
-    des = np.asarray(des).astype('uint8')
-
-    np.save(
-        f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\VLAD_{feature_count}_uint_feat.npy', des)
-
-    print()
+    model_file = vlad_data_path + f"KMeans_{k}_visual_dict_model.sav"
+    pickle.dump(visual_dict, open(model_file, 'wb'))
+    print(f'Visual dictionary with {k} clusters model saved.')
     return
 
-
-############# 2. Making Visual Words #############
-def get_visual_dict():
-    vlad_data_file = np.load(f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\VLAD_{feature_count}_uint_feat.npy", allow_pickle=True)
-    print(vlad_data_file.shape)
-    print(np.max(vlad_data_file))
-    print(vlad_data_file.dtype)
-    print(vlad_data_file[0, -1])
-    visualDict = kMeansDictionary(vlad_data_file, 256)
-    print('Visual Dictionary obtained.')
-
-    model_file = f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\KMean{feature_count}_model.sav'
-    pickle.dump(visualDict, open(model_file, 'wb'))
-    print('Visual Dictionary model saved.')
-    return
+### Generation of visual dictionary ends
 
 
-############# 3. Getting the VLAD descriptors #############
-def get_vlad_desc(low, high):
-    n = 54
+### Generation of VLAD starts
 
-    ad_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\AD_mainNPY\\'
-    cn_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\CN_mainNPY\\'
-    mci_loc = 'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\MCI_mainNPY\\'
+def make_VLAD(n, descriptors, visual_dict):
+    centers = visual_dict.cluster_centers_
+    labels = visual_dict.labels_
+    k = visual_dict.n_clusters
 
-    visualDict = pickle.load(open(f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\KMean{feature_count}_model.sav", 'rb'))
+    centroid = centers[labels[n]]
+    centroid = centroid.reshape((69, 13216))
 
-    '''
-    vlad_ad = getVLADDescriptors(ad_loc, visualDict, low, high, n)
-
-    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_ad.npy', vlad_ad)
-
-    print('--- AD complete ---')
-    #input('AD complete. Enter to continue >>')
-    '''
-
+    V = np.sum(descriptors - centroid, axis=0)
     
-    ''''''
-    vlad_cn = getVLADDescriptors(cn_loc, visualDict, low, high, n)
-
-    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_cn.npy', vlad_cn)
-
+    #m, d = descriptors.shape
+    #V = np.zeros([k,d])
+    '''
+    for i in range(k):
+        if np.sum(predictedLabels == i) > 0:
+            V[i] = np.sum(descriptors[predictedLabels == i, :]- centers[i], axis=0)
+    print(V.shape)
+    '''
+    #V = V.flatten()
+    # power normalization, also called square-rooting normalization
+    V = np.sign(V)*np.sqrt(np.abs(V))
+    print(V)
+    # L2 normalization
+    V = V/np.sqrt(np.dot(V, V))
+    print(V)
     print()
-    input('CN complete. Enter to continue >>')
-    ''''''
+    return V
 
-    ''''''
-    vlad_mci = getVLADDescriptors(mci_loc, visualDict, low, high, n)
+def append_target(data):
+    ad = np.full((54,), 1)
+    cn = np.full((54,), 2)
+    mci = np.full((54,), 3)
+    target = np.hstack([ad, cn, mci])
+    final_data = np.column_stack((data,target))
+    return final_data
 
-    np.save(
-        f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_mci.npy', vlad_mci)
+def get_VLAD():
+    k = 16
+    visual_dict = pickle.load(open(vlad_data_path+f"KMeans_{k}_visual_dict_model.sav", "rb"))
 
-    print()
-    input('MCI complete. Enter to continue >>')
-    ''''''
+    orb_all = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\ORB_ad-cn-mci.npy"
 
+    orb_data = np.load(orb_all, allow_pickle=True)
+    vlad_desc = []
+    n = 0
+    for row in orb_data:
+        data = row.reshape((69, 13216))
+        result = make_VLAD(n, data, visual_dict)
+        vlad_desc.append(result)
+        n += 1
+    vlad_desc = np.array(vlad_desc)
+    print(vlad_desc.shape)
+    vlad_desc_target = append_target(vlad_desc)
+    np.save(vlad_data_path + f"VLAD_{k}_feat.npy", vlad_desc_target)
+    print("VLAD saved.")
+    '''
+    for line in orb_data:
+        vlad_line = make_VLAD(line, visual_dict)
+        vlad_orb.append(vlad_line)
+        break
+    '''
+    '''
+    for case in cases:
+        descriptors = orb_data_path.format(case)
+        case_vlad = make_VLAD(descriptors, visual_dict)
+        save_as = vlad_data_path.format(case) + f"{case}-VLAD.npy"
+        np.save(save_as, case_vlad)
+        print(case, 'VLAD saved.\n')
+        return
+    '''
+
+    '''
+    for case in cases:
+        os.chdir(npy_data_path.format(case))
+        file_counter = 1
+        case_vlad = []
+        for file in os.listdir():
+            fname, fext = os.path.splitext(file)
+            data = np.load(file, allow_pickle=True)
+            print(file,'loaded',end=' - ')
+            file_descriptors = get_file_descriptors(fname, data)
+            print(data.shape,'descriptor gained',end=' - ')
+            limit = 69
+            file_descriptors = perform_data_generation(file_descriptors, limit)
+
+            save_as = orb_data_path.format(case)+f"{fname}_orb.npy"
+            np.save(save_as, file_descriptors)
+            print('saved.')
+
+            file_vlad = make_VLAD(file_descriptors, visual_dict)
+            case_vlad.append(file_vlad)
+            print(fname,'VLAD received.\n')
+        
+        case_vlad = np.asarray(case_vlad)
+        save_as = vlad_data_path.format(case) + f"{case}-VLAD.npy"
+        np.save(save_as, case_vlad)
+        print(case, 'VLAD saved.\n')
+    '''    
     return
 
-
-def merge_vlads():
-    # param target: 1 for AD, 2 for CN and 3 for MCI
-
-    adv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_ad.npy"
-
-    cnv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_cn.npy"
-
-    mciv = f"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad{feature_count}_mci.npy"
-
-    adv = np.load(adv, allow_pickle=True)
-    cnv = np.load(cnv, allow_pickle=True)
-    mciv = np.load(mciv, allow_pickle=True)
-
-    n = adv.shape[0]
-
-    ad_t = np.full((n,), 1, dtype='uint8')
-    cn_t = np.full((n,), 2, dtype='uint8')
-    mci_t = np.full((n,), 3, dtype='uint8')
-
-    adv_t = np.column_stack((adv, ad_t))
-    cnv_t = np.column_stack((cnv, cn_t))
-    mciv_t = np.column_stack((mciv, mci_t))
-
-    vlad_all_cases = np.concatenate((adv_t, cnv_t, mciv_t), axis=0)
-
-    np.save(f'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\\vlad\\vlad_all_cases_{feature_count}.npy', vlad_all_cases)
+### Generation of VLAD ends
 
 
 if __name__ == "__main__":
+    
     start_time = time.time()
-    low = 40
-    high = 151
-    # step - 1
-    #get_all_descriptors(low, high) # complete - 50, 100, 200 
-    # step - 2
-    #get_visual_dict()   # complete - 50, 100
-    # step - 3
-    #get_vlad_desc(low,high)
-    # step - 4
-    #merge_vlads()
+    
+    # step-1
+    #generate_ORBz()
+
+    #merge_ORBz()
+
+    # step-2
+    #get_visual_dict(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\ORB_ad-cn-mci.npy")
+
+    # step-3
+    #cases = ['AD', 'CN', 'MCI']
+    get_VLAD()
+    
     e = int(time.time() - start_time)
     print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))
+
+# [(413, 326), (410, 359), (411, 122)]

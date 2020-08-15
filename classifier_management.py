@@ -1,5 +1,5 @@
 import itertools
-import time
+import time, sys
 import xlsxwriter as xl
 
 import numpy as np
@@ -30,8 +30,7 @@ class Classifier:
         self.__title = title
         self.__parameters_list = parameters_list
         self.__combos = combos
-        self.__headers = headers + \
-            ['COMPONENT-NO.', '%-ACCURACY', 'BEST_ACCURACY']
+        self.__headers = headers + ['COMPONENT-NO.', '%-ACCURACY', 'BEST_ACCURACY']
 
     def get_title(self):
         return self.__title
@@ -116,7 +115,7 @@ class LDAmodel(Classifier):
         tol = [0.1, 0.01]
         self.__parameters_list = [solver, shrinkage, tol]
         #combo_list = list(itertools.product(*self.__parameters_list))
-        # there are 28 combos
+        # there are 28 combos.  16 succeeds.
         self.__headers = ['SOLVER', 'SHRINKAGE','TOLERANCE']
         self.__combos = [
             ['svd', None, 0.1], ['svd', None, 0.01], ['lsqr', 'auto', 0.1], ['lsqr', 'auto', 0.01], ['lsqr', 0.1, 0.1], ['lsqr', 0.1, 0.01], ['lsqr', 0.25, 0.1], ['lsqr', 0.25, 0.01], [
@@ -217,7 +216,7 @@ def applyPCA(feature, no_comp):
     return pcomp
 
 
-def train_model(df, headers, classifier, X, Y, serial=1, doCompo=False):
+def train_model(df, headers, classifier, X, Y, serial=4, doCompo=False):
     
     combo_list = classifier.get_combos()
     number_of_combos = len(combo_list)
@@ -299,7 +298,7 @@ def classify_feats(model, path):
 
 def save_excel(model, dfs, excel_loc):
     title = model.get_title()
-    save_as = excel_loc + f"{title}clahe-hog.xlsx"
+    save_as = excel_loc + f"{title}clahe-vlad_16-2.xlsx"
     writer = pd.ExcelWriter(save_as, engine='xlsxwriter')
     counter = 1
     for df in dfs:
@@ -313,20 +312,25 @@ def save_excel(model, dfs, excel_loc):
 if __name__ == "__main__":    
     start_time = time.time()
 
-    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\clahe_glcm_54.npy"
+    glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_GLCM\clahe_glcm_54.npy"
+    
     hog_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\CLAHE-HOG-MERGED.npy"
+
+    vlad_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\VLAD_16_feat.npy"
 
     file_path = glcm_path
     #file_path = hog_path
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\80-20-clahe\\'
+    #file_path = vlad_path
+
+    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\result_vlad\\'
 
     #model = GaussianNBModel()
-    #model = DTreeModel()
+    model = DTreeModel()
     #model = KNeighborModel()
     #model = SVCmodel()
     #model = RForestModel()  # takes time
     #model = LDAmodel()     # takes time
-    model = LogRegModel()  # takes a lot of time
+    #model = LogRegModel()  # takes a lot of time
 
     
     filename = r".//performance_metrics/"+ model.get_title() + '.txt'
@@ -349,3 +353,4 @@ if __name__ == "__main__":
     print()
     df = dfs[0].sort_values(by=['%-ACCURACY'], ascending=False)
     print(df.head)
+    sys.stdout.write('\a')

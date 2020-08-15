@@ -18,6 +18,7 @@ data_analysis.py
 data_preparation.py
 glcm_calculation.py
 image_extractor.py
+BOVW.py
 image_to_npy.py
 interest_data_extractor.py
 interest_data_tuples.py
