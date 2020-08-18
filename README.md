@@ -1,2 +1,2 @@
 # Alzheimer-Classification-Machine-Learning
-Classifying Alzheimer's disease stages using machine learning classification algorithm.
+Detecting three stages of Alzheimer’s Progressive Neurodegenerative disease from 3D MRI imagery using Machine Learning.
