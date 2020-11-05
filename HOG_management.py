@@ -35,9 +35,6 @@ norm_npy_fold = "E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_
 #imp_hog_fold = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\HOG_idata\imputed_HOG\\"
 
 
-hog
-
-
 limit = 69
 
 

@@ -1,43 +1,53 @@
-import pickle
+import itertools
+import time
+import xlsxwriter as xl
 
 import numpy as np
+import pandas as pd
+import pickle
 
+from sklearn import preprocessing
 from sklearn.decomposition import PCA
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report
+from sklearn.metrics import confusion_matrix
+from sklearn.utils import check_random_state
+
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
+
 
 combinations = {
 
     #dtree - CRITERION	SPLITTER	MAX-FEATURES	CLASS-WEIGHT
 
     'DTree_': [
-        
-        ['entropy', 'random', 'sqrt', 'balanced'],
-        ['entropy', 'random', 1, None],
-        ['gini', 'random', None, None],
-        ['gini', 'best', 'auto', 'balanced'],
-        ['entropy', 'random', 1, 'balanced']
+        ['gini', 'random', 1, None],
+        ['gini', 'random', 'auto', 'balanced'],
+
     ],
 
 
     #gauss - VAR-SMOOTHING
 
     'GaussNB_': [
-        [0.000000001]
+        [0.000000001],
+        [0.000000001],
     ],
 
 
     #knbr - WEIGHTS	ALGORITHM
 
     'KNbr_': [
-        ['distance', 'auto']
+        ['distance', 'auto'],
+        ['distance', 'auto'],
     ],
 
 
@@ -45,8 +55,7 @@ combinations = {
 
     'LDA_': [
         ['lsqr' , 0.1, True, 0.1],
-        ['lsqr' , 'auto', True, 0.1],
-        ['svd' , None, True, 0.1]
+        ['lsqr' , .25, None, 0.1],
     ],
 
 
@@ -54,11 +63,8 @@ combinations = {
 
     'LogReg_': [
         
-        ['none', False, 0.1, True, 'newton-cg', 'auto', True],
-        ['none', False, 0.01, True, 'newton-cg', 'ovr', True],
-        ['none', False, 0.01, False, 'newton-cg',	'auto', True],
-        ['none', False, 0.1, False, 'lbfgs', 'ovr', True],
         ['l2', False, 0.1, False, 'newton-cg', 'auto', True],
+        ['l2', False, 0.1, False, 'newton-cg', 'ovr', True],
     ],
 
 
@@ -66,11 +72,9 @@ combinations = {
 
     'RForest_': [
 
-        ['entropy', 'auto', False, False, False],
-        ['entropy', 'sqrt', True, True, False],
-        ['gini', 'auto', False, False, True],
-        ['gini', 'log2', True, True, True],
-        ['gini', 'auto', True, True, False]
+        ['entropy', 'sqrt', True, False, True],
+        ['entropy', 'log2', True, True, True],
+
     ],
 
 
@@ -78,24 +82,129 @@ combinations = {
 
     'SVC_': [
         ['linear', 'ovo'],
-        ['rbf', 'ovo']
+        ['linear', 'ovo'],
     ]
 }
 
-compos = {
+components = {
     #'DTree_', 'GaussNB_', 'KNbr_', 'LDA_', 'LogReg_', 'RForest_', 'SVC_'
-    'DTree_': [7, 27, 16, 32, 3],  # [30, 8, 18, 22, 26],
-    'GaussNB_': [24],  # [53],
-    'KNbr_': [72],  # [239],
-    'LDA_': [100, 19, 49],  # [261, 120, 38],
-    'LogReg_': [95, 53, 62, 110, 141],  # [127, 218, 209, 263, 277],
-    'RForest_': [12, 13, 14, 24, 20],  # [41, 39, 63, 36, 62],
-    'SVC_': [127, 112]  # [81]
+    'DTree_': [6, 20], 
+    'GaussNB_': [30, 37],
+    'KNbr_': [16, 20],  
+    'LDA_': [98, 55],  
+    'LogReg_': [131, 113],
+    'RForest_': [19, 63], 
+    'SVC_': [75, 111]
 }
 
-model_fol = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\Models\\"
+model_fol = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\Models\\"
 
-feature_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\all_clean_glcm_54.npy"
+glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_GLCM\clahe_glcm_54.npy"
+
+hog_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\CLAHE-HOG-MERGED.npy"
+
+vlad_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\VLAD_16_feat2.npy"
+
+feature_path = {
+    'glcm': glcm_path,
+    'hog': hog_path,
+    'vlad': vlad_path
+}
+
+
+def get_DTree(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['gini', 'random', 1, None]
+    elif feature_type == 'hog':
+        combo = ['gini', 'random', 'auto', 'balanced']
+    return DecisionTreeClassifier(criterion=combo[0], splitter=combo[1], max_features=combo[2], class_weight=combo[3])
+
+
+def get_GaussNB(feature_type):
+    combo = [0.000000001]
+    return GaussianNB(var_smoothing=combo[0])
+
+
+def get_KNbr(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['distance', 'auto']
+    elif feature_type == 'hog':
+        combo = ['distance', 'auto']
+
+    return KNeighborsClassifier(weights=combo[0], algorithm=combo[1])
+
+
+def get_LDA(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['lsqr', 0.1, True, 0.1]
+    elif feature_type == 'hog':
+        combo = ['lsqr', .25, None, 0.1]
+
+    return LinearDiscriminantAnalysis(solver=combo[0], shrinkage=combo[1], store_covariance=combo[2], tol=combo[3])
+
+
+def get_LogReg(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['l2', False, 0.1, False, 'newton-cg', 'auto', True]
+    elif feature_type == 'hog':
+        combo = ['l2', False, 0.1, False, 'newton-cg', 'ovr', True]
+
+    return LogisticRegression(penalty=combo[0], dual=combo[1], tol=combo[2], fit_intercept=combo[3], max_iter=1000, random_state=0, solver=combo[4], multi_class=combo[5], warm_start=combo[6])
+
+
+def get_RForest(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['entropy', 'sqrt', True, False, True]
+    elif feature_type == 'hog':
+        combo = ['entropy', 'log2', True, True, True]
+
+    return RandomForestClassifier(criterion=combo[0], max_features=combo[1], bootstrap=combo[2], oob_score=combo[3], warm_start=combo[4])
+
+
+def get_SVC(feature_type):
+    combo = []
+    if feature_type == 'glcm':
+        combo = ['linear', 'ovo']
+    elif feature_type == 'hog':
+        combo = ['linear', 'ovo']
+
+    return SVC(kernel=combo[0], decision_function_shape=combo[1])
+
+
+def get_index(feature_type):
+    if feature_type == 'glcm':
+        return 0
+    elif feature_type == 'hog':
+        return 1
+    else: return 0
+
+
+def get_classifier_properties(feature_type, classifier, index):
+    global combinations
+    global components
+    model = ''
+
+    if classifier == 'DTree_':
+        model = get_DTree(feature_type)
+    elif classifier == 'GaussNB_':
+        model = get_GaussNB(feature_type)
+    elif classifier == 'KNbr_':
+        model = get_KNbr(feature_type)
+    elif classifier == 'LDA_':
+        model = get_LDA(feature_type)
+    elif classifier == 'LogReg_':
+        model = get_LogReg(feature_type)
+    elif classifier == 'RForest_':
+        model = get_RForest(feature_type)
+    elif classifier == 'SVC_':
+        model = get_SVC(feature_type)
+
+    return model, combinations[classifier][index], components[classifier][index]
 
 
 def applyPCA(feature, no_comp):
@@ -113,59 +222,60 @@ def prepare_data(data_path):
     all_X = all_data[:, :-1]
     all_Y = all_data[:, -1]
     print('Data distribution complete.')
-    
+
     return all_X, all_Y, shape[0]-1
 
 
+def do_classification(X, Y, model, compo):
+    x = applyPCA(X, compo)
+
+    train_X, test_X, train_Y, test_Y = train_test_split(x, Y, test_size=0.2)
+
+    model.fit(train_X, train_Y)
+
+    predictions = model.predict(test_X)
+    accuracy = accuracy_score(test_Y, predictions)
+    confusion = confusion_matrix(test_Y, predictions)
+    report = classification_report(test_Y, predictions)
+
+    return accuracy, confusion, report
+
+
+def save_credentials(file, classifier, feature_type, compo, accuracy, confusion, report):   
+    file.write('Component: '+str(compo))
+    file.write('\nAccuracy: ' + str(accuracy*100))
+    file.write('\n\n')
+    file.write('Confusion matrix:\n'+str(confusion))
+    file.write('\n\n')
+    file.write('Classification report:\n'+str(report))
+    file.write('\n\n\n')
+    #pkl = model_fol + f'{classifier}_{feature_type}_model.sav'
+
+    #pickle.dump(model, open(pkl, 'wb'))
+    print('Saved.')
+    return
+
+
 if __name__ == "__main__":
-    X, Y, limit = prepare_data(feature_path)
-    print('Data prepared')
-
+    
     # 'DTree_','GaussNB_','KNbr_','LDA_','LogReg_','RForest_','SVC_'
+    classifier = 'GaussNB_'
+    feature_type = 'glcm'
 
-    classifier = 'LogReg_'
-    combos = combinations[classifier]
-    components = compos[classifier]
+    index = get_index(feature_type)
+    model, combo, compo = get_classifier_properties(feature_type, classifier, index)
 
-    for c in range(len(components)):
-        x = applyPCA(X, components[c])
-        print(f'comp-{components[c]} applied')
-
-        models = {
-            'DTree_' : DecisionTreeClassifier(criterion=combos[c][0], splitter=combos[c][1], max_features=combos[c][2], class_weight=combos[c][3]) ,
-
-            'GaussNB_': GaussianNB(var_smoothing=combos[c][0]),
-            
-            'KNbr_': KNeighborsClassifier(weights=combos[c][0], algorithm=combos[c][1]),
-            
-            'LDA_': LinearDiscriminantAnalysis(solver=combos[c][0], shrinkage=combos[c][1], store_covariance=combos[c][2], tol=combos[c][3]),
-            
-            'LogReg_': LogisticRegression(penalty=combos[c][0], dual=combos[c][1], tol=combos[c][2], fit_intercept=combos[c][3], max_iter=600, random_state=0, solver=combos[c][4], multi_class=combos[c][5], warm_start=combos[c][6]) , 
-
-            'RForest_': RandomForestClassifier(criterion=combos[c][0], max_features=combos[c][1], bootstrap=combos[c][2], oob_score=combos[c][3], warm_start=combos[c][4]),
-            
-            'SVC_': SVC(kernel=combos[c][0], decision_function_shape=combos[c][1])
-
-        }
-
-        train_X, test_X, train_Y, test_Y = train_test_split(x, Y, test_size=0.3)
-        print(f'train test split done #{c+1}')
-
-        p = model_fol + r"train-test\\"
-
-        f = p + f'{classifier}_all-clean_glcm_combo-{c+1}_compo-{components[c]}_'
-        np.save(f + 'test_X', test_X)
-        np.save(f + 'test_Y', test_Y)
-        print(f'Train-test saved #{c+1}')
-
-        model = models[classifier]
-
-        model.fit(train_X, train_Y)
-        print(f'model fit complete #{c+1}')
-
-        pkl = model_fol + f'{classifier}_all-clean_glcm_combo-{c+1}_compo-{components[c]}_model.sav'
-        
-        pickle.dump(model, open(pkl, 'wb'))
-        
-        print(f'{pkl} saved #{c+1}')
-        print()
+    X, Y, limit = prepare_data(feature_path[feature_type])
+    p = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\\train-test\\"
+    file = open(p+f'{classifier}{feature_type}.txt', 'w+')
+    #for compo in range(1, 161):
+    for compo in [compo]:
+        accuracy, confusion, report = do_classification(X, Y, model, compo)
+        print('\nComponent #',compo)
+        print('\nAccuracy: ', accuracy*100,'%')
+        print('\nConfusion matrix:\n', confusion)
+        print('\nReport:\n', report)
+        if accuracy*100 > 80:
+            save_credentials(classifier, feature_type, accuracy, confusion, report)
+    file.close()
+    print()

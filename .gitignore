@@ -12,6 +12,7 @@ interest_data_tuple_extractor.py
 /functional_modules/tempCodeRunnerFile.py
 /Data_Visualization/__pycache__
 /Data_Visualization/tempCodeRunnerFile.py
+/Data_Visualization
 /classifier_modules/__pycache__
 /classifier_modules/tempCodeRunnerFile.py
 data_analysis.py
@@ -27,3 +28,6 @@ histogram_matching.py
 PlottingData.ipynb
 general_classifier.py
 /performance_metrics
+/test2.py
+/test3.py
+BOVW.py

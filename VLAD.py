@@ -10,46 +10,47 @@ from sklearn import model_selection
 from sklearn.cluster import KMeans
 from matplotlib import pyplot as plt
 
-
+# directory location holding the CLAHE enhanced .npy files
 npy_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_{}npy\\"
 
+# directory location to save the VLAD results
 vlad_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\\"
 
+# directory location to save the ORB results
 orb_data_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\{}-ORB\\"
 
 
 ### ORB generation process starts
 
-def add_nan(data, limit):
-    """[append nan value to files]
-
-    Args:
-        data ([ndarray]): [source data file]
-
-    Returns:
-        [ndarray]: [numpy array with nan appended]
-    """
-    nan_data = np.zeros((limit - data.shape[0], data.shape[1]))
-    nan_data[:] = np.NaN
-    padded_data = np.vstack([data, nan_data])
-    return padded_data
-
-
-def interpolate_data(data):
-    """[Interpolation of passed to replace null values]
-
-    Args:
-        data ([ndarray]): [a numpy array]
-
-    Returns:
-        [dataframe]: [an interpolated dataframe]
-    """
-    df = pd.DataFrame(data)
-    interpolated = df.interpolate(method='linear')
-    return interpolated.to_numpy()
-
-
 def perform_data_generation(data, limit):
+
+    def add_nan(data, limit):
+        """[append nan value to files]
+
+        Args:
+            data ([ndarray]): [source data file]
+
+        Returns:
+            [ndarray]: [numpy array with nan appended]
+        """
+        nan_data = np.zeros((limit - data.shape[0], data.shape[1]))
+        nan_data[:] = np.NaN
+        padded_data = np.vstack([data, nan_data])
+        return padded_data
+
+    def interpolate_data(data):
+        """[Interpolation of passed to replace null values]
+
+        Args:
+            data ([ndarray]): [a numpy array]
+
+        Returns:
+            [dataframe]: [an interpolated dataframe]
+        """
+        df = pd.DataFrame(data)
+        interpolated = df.interpolate(method='linear')
+        return interpolated.to_numpy()
+    
     nan_data = add_nan(data, limit)
     interpolated_data = interpolate_data(nan_data)
     return interpolated_data
@@ -58,7 +59,7 @@ def perform_data_generation(data, limit):
 def get_ORBz(data):
     orb = cv2.ORB_create()
     key_points, descriptors = orb.detectAndCompute(data, None)
-    return descriptors
+    return descriptors, key_points
 
 
 def get_file_descriptors(fname, data):
@@ -66,10 +67,18 @@ def get_file_descriptors(fname, data):
     flag = False
     for slice in data:
         limit = 413
-        descriptor = get_ORBz(slice)
+        descriptor, kp = get_ORBz(slice)
+        #img2 = cv2.drawKeypoints(slice, kp, outImage=None, color=(0, 255, 0), flags=0)
+        #plt.imshow(img2), plt.show()
         #print(fname,x,descriptor.shape, end=' -> ')
+        ###
+        print('Original ORB\n',descriptor)
+        ###
 
         modified_descriptor = perform_data_generation(descriptor, limit)
+        ###
+        print('Modified ORB\n',modified_descriptor)
+        ###
         slice_desc = modified_descriptor.flatten()
 
         if flag == False:
@@ -93,9 +102,15 @@ def get_descriptors(case='AD'):
         data = np.load(file, allow_pickle=True)
         
         file_descriptors = get_file_descriptors(fname, data)
-        
+        ###
+        print('Original file desc\n',file_descriptors)
+        ###
         limit = 69
         file_descriptors = perform_data_generation(file_descriptors, limit)
+        ###
+        print('Modified ORB\n',file_descriptors)
+        ###
+        return
         print(file_descriptors.shape)
         file_descriptors = file_descriptors.flatten()
         
@@ -109,6 +124,7 @@ def generate_ORBz():
     cases = ['AD', 'CN', 'MCI']
     for case in cases:
         case_descriptors = get_descriptors(case)
+        return
         case_descriptors = np.array(case_descriptors).astype('uint8')
         print(case_descriptors.shape)
         print(case_descriptors)
@@ -118,9 +134,9 @@ def generate_ORBz():
 
 
 def merge_ORBz():
-    ad_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\AD-ORB.npy"
-    cn_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\CN-ORB.npy"
-    mci_orb = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\MCI-ORB.npy"
+    ad_orb = vlad_data_path+ r"AD-ORB.npy"
+    cn_orb = vlad_data_path + r"CN-ORB.npy"
+    mci_orb = vlad_data_path + r"MCI-ORB.npy"
 
     ad_data = np.load(ad_orb, allow_pickle=True)
     print('AD-ORB loaded.')
@@ -173,6 +189,15 @@ def get_visual_dict(path):
 
 ### Generation of VLAD starts
 
+def append_target(data):
+    ad = np.full((54,), 1)
+    cn = np.full((54,), 2)
+    mci = np.full((54,), 3)
+    target = np.hstack([ad, cn, mci])
+    final_data = np.column_stack((data, target))
+    return final_data
+
+
 def make_VLAD(n, descriptors, visual_dict):
     centers = visual_dict.cluster_centers_
     labels = visual_dict.labels_
@@ -201,13 +226,6 @@ def make_VLAD(n, descriptors, visual_dict):
     print()
     return V
 
-def append_target(data):
-    ad = np.full((54,), 1)
-    cn = np.full((54,), 2)
-    mci = np.full((54,), 3)
-    target = np.hstack([ad, cn, mci])
-    final_data = np.column_stack((data,target))
-    return final_data
 
 def get_VLAD():
     k = 16
@@ -228,49 +246,7 @@ def get_VLAD():
     vlad_desc_target = append_target(vlad_desc)
     np.save(vlad_data_path + f"VLAD_{k}_feat.npy", vlad_desc_target)
     print("VLAD saved.")
-    '''
-    for line in orb_data:
-        vlad_line = make_VLAD(line, visual_dict)
-        vlad_orb.append(vlad_line)
-        break
-    '''
-    '''
-    for case in cases:
-        descriptors = orb_data_path.format(case)
-        case_vlad = make_VLAD(descriptors, visual_dict)
-        save_as = vlad_data_path.format(case) + f"{case}-VLAD.npy"
-        np.save(save_as, case_vlad)
-        print(case, 'VLAD saved.\n')
-        return
-    '''
-
-    '''
-    for case in cases:
-        os.chdir(npy_data_path.format(case))
-        file_counter = 1
-        case_vlad = []
-        for file in os.listdir():
-            fname, fext = os.path.splitext(file)
-            data = np.load(file, allow_pickle=True)
-            print(file,'loaded',end=' - ')
-            file_descriptors = get_file_descriptors(fname, data)
-            print(data.shape,'descriptor gained',end=' - ')
-            limit = 69
-            file_descriptors = perform_data_generation(file_descriptors, limit)
-
-            save_as = orb_data_path.format(case)+f"{fname}_orb.npy"
-            np.save(save_as, file_descriptors)
-            print('saved.')
-
-            file_vlad = make_VLAD(file_descriptors, visual_dict)
-            case_vlad.append(file_vlad)
-            print(fname,'VLAD received.\n')
-        
-        case_vlad = np.asarray(case_vlad)
-        save_as = vlad_data_path.format(case) + f"{case}-VLAD.npy"
-        np.save(save_as, case_vlad)
-        print(case, 'VLAD saved.\n')
-    '''    
+       
     return
 
 ### Generation of VLAD ends
@@ -283,14 +259,15 @@ if __name__ == "__main__":
     # step-1
     #generate_ORBz()
 
+    # step-2
     #merge_ORBz()
 
-    # step-2
+    # step-3
     #get_visual_dict(r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\ORB_ad-cn-mci.npy")
 
-    # step-3
+    # step-4
     #cases = ['AD', 'CN', 'MCI']
-    get_VLAD()
+    #get_VLAD()
     
     e = int(time.time() - start_time)
     print('Time elapsed- {:02d}:{:02d}:{:02d}'.format(e //3600, (e % 3600 // 60), e % 60))

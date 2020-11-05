@@ -5,11 +5,14 @@ import xlsxwriter as xl
 import numpy as np
 import pandas as pd
 
-from sklearn import preprocessing
+from imblearn.over_sampling import SMOTE
+
+
 from sklearn.decomposition import PCA
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.utils import check_random_state
@@ -21,8 +24,6 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-
-global file
 
 
 class Classifier:
@@ -45,10 +46,10 @@ class Classifier:
         model.fit(train_X, train_Y)
         predictions = model.predict(test_X)
         accuracy = accuracy_score(test_Y, predictions)
-        #confusion = confusion_matrix(test_Y, predictions)
-        #report = classification_report(test_Y, predictions)
-        #return accuracy, confusion, report
-        return accuracy
+        confusion = confusion_matrix(test_Y, predictions)
+        report = classification_report(test_Y, predictions)
+        return accuracy, confusion, report
+        #return accuracy
 
 
 class DTreeModel(Classifier):
@@ -87,7 +88,7 @@ class GaussianNBModel(Classifier):
         super(GaussianNBModel, self).__init__(self.__title, self.__parameters_list, self.__combos, self.__headers)
 
     def make_model(self, c, train_X, train_Y, test_X, test_Y):
-        self.__model = gaussnb_model = GaussianNB(var_smoothing=self.__combos[c][0])
+        self.__model = GaussianNB(var_smoothing=self.__combos[c][0])
         return self._Classifier__get_accuracy(self.__model, train_X, train_Y, test_X, test_Y)
 
 
@@ -199,6 +200,7 @@ class SVCmodel(Classifier):
         return self._Classifier__get_accuracy(self.__model, train_X, train_Y, test_X, test_Y)
 
 
+
 def prepare_data(data_path):
     all_data = np.load(data_path, allow_pickle=True)
     shape = all_data.shape
@@ -209,46 +211,51 @@ def prepare_data(data_path):
     return all_X, all_Y, shape[0]-1
 
 
-def applyPCA(feature, no_comp):
-    X = StandardScaler().fit_transform(feature)
+def applyPCA(X, no_comp):
     pca = PCA(n_components=no_comp)
     pcomp = pca.fit_transform(X)
     return pcomp
 
 
+def save_conf_mat(classifier, feature_type, accuracy, confusion, report):
+    #global file
+    file = open(filename, "w")
+    file.write('Accuracy: ' + str(accuracy*100))
+    file.write('\n\n')
+    file.write('Confusion matrix:\n'+str(confusion))
+    file.write('\n\n')
+    file.write('Classification report:\n'+str(report))
+    file.write('\n\n\n')
+    #pkl = model_fol + f'{classifier}_{feature_type}_model.sav'
+    #pickle.dump(model, open(pkl, 'wb'))
+    return
+
+
 def train_model(df, headers, classifier, X, Y, serial=4, doCompo=False):
-    
     combo_list = classifier.get_combos()
     number_of_combos = len(combo_list)
     print(classifier.get_title(), end=' ')
     print('Processing compo #', serial, end=' ')
-    x = X
+
+    x = MinMaxScaler().fit_transform(X)
     if doCompo:
-      x = applyPCA(X, serial)
+      x = applyPCA(x, serial)
       print('PCA done #%d' % (serial))
-    else:
-      x = StandardScaler().fit_transform(X)
-      print()
 
     success = 0
     best_score = 0
     fail = 0
-    _scores = []
-    successful_combos = []
-    n_samples = 162
 
-    start = 1079
-    finish = start+1
-    rs = start
-    # [15,103,123,149,181,946,1079]
+    #oversample = SMOTE()
+    #x, Y = oversample.fit_resample(x, Y)
 
     train_X, test_X, train_Y, test_Y = train_test_split(x, Y, test_size=0.2)
-
+    
     for c in range(number_of_combos):
         print(classifier.get_title(), ' - Entering combo #', c+1, end=' ')
         try:
-            #score_model, confusion, report = classifier.make_model(c, train_X, train_Y, test_X, test_Y)
-            score_model = classifier.make_model(c, train_X, train_Y, test_X, test_Y)
+            score_model, confusion, report = classifier.make_model(c, train_X, train_Y, test_X, test_Y)
+            #score_model = classifier.make_model(c, train_X, train_Y, test_X, test_Y)
             print('Compo #{} - #{} Combos Successful!\nScore: {}'.format(serial, success+1, score_model))
             success += 1
             #successful_combos.append(combo_list[c])
@@ -262,26 +269,22 @@ def train_model(df, headers, classifier, X, Y, serial=4, doCompo=False):
                 for h, p in zip(headers, parameters):
                     d[h] = p
                 df = df.append(d, ignore_index=True)
-                '''if best_score > 0.74:
-                    global file
-                    file.write('Accuracy: '+ str(best_score))
-                    file.write('\n\n')
-                    file.write('Confusion matrix:\n'+str(confusion))
-                    file.write('\n\n')
-                    file.write('Classification report:\n'+str(report))
-                    file.write('\n\n\n')
-                '''
+                if best_score > 0.7:
+                    global feature_type
+                    #save_conf_mat(classifier.get_title(), feature_type, score_model, confusion, report)
         except:
             print(classifier.get_title(), ' - Compo #', serial, ' -> failed')
             fail += 1
-    print(classifier.get_title(),' - Exiting compo #%d - combo #%d\n' % (serial, c+1))
-    print(classifier.get_title(), ' - Compo %d - all done.' % serial)
+        print(classifier.get_title(),' - Exiting compo #%d - combo #%d\n' % (serial, c+1))
+    print(classifier.get_title(), f' - Compo {serial} - all done.')
     print(classifier.get_title(), ' - Total combinations: ', number_of_combos,
           'Total success: ', success, 'Total failure:', fail, '\n')
     
-    '''print()
+    '''
+    print()
     print(len(successful_combos))
-    print(successful_combos)'''
+    print(successful_combos)
+    '''
     return df
 
 
@@ -290,15 +293,16 @@ def classify_feats(model, path):
   headers = model.get_headers()
   df = pd.DataFrame(columns=headers)
   #limit = 2 #set limit to 2 when doing VLAD
-  for serial in range(1, limit):
-      df = train_model(df, headers, model, X, Y, serial, True)
+  start, finish = 1,161
+  for serial in range(start, finish):
+      df = train_model(df, headers, model, X, Y, serial, False)
       print('Serial #', serial, 'done.\n\n')
   return df
 
 
-def save_excel(model, dfs, excel_loc):
+def save_excel(model, dfs, excel_loc, feat, epoch=1):
     title = model.get_title()
-    save_as = excel_loc + f"{title}clahe-vlad_16-2.xlsx"
+    save_as = excel_loc + f"{feat}-{title}pca-{epoch}_var.xlsx"
     writer = pd.ExcelWriter(save_as, engine='xlsxwriter')
     counter = 1
     for df in dfs:
@@ -314,27 +318,40 @@ if __name__ == "__main__":
 
     glcm_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_GLCM\clahe_glcm_54.npy"
     
-    hog_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\CLAHE-HOG-MERGED.npy"
+    hog_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\Big_HOGs\CLAHE-HOG-MERGED.npy"
 
-    vlad_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\VLAD_16_feat.npy"
+    #vlad_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\VLAD_16_feat2.npy"
+    vlad_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_VLAD\New folder\VLAD_16_feat.npy"
 
-    file_path = glcm_path
-    #file_path = hog_path
-    #file_path = vlad_path
+    hog_mrmr_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\Big_HOGs\mrmr_minmax_hog_160.npy"
 
-    excel_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\\result_vlad\\'
+    result_loc = r'E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\excels\FINALS\\'
 
-    #model = GaussianNBModel()
-    model = DTreeModel()
+    model = GaussianNBModel()
+    #model = DTreeModel()
     #model = KNeighborModel()
     #model = SVCmodel()
     #model = RForestModel()  # takes time
     #model = LDAmodel()     # takes time
-    #model = LogRegModel()  # takes a lot of time
-
+    #model = LogRegModel()  # takes a lot of time 
     
-    filename = r".//performance_metrics/"+ model.get_title() + '.txt'
-    global file
+    no_fl = 2
+
+    #feature_type = 'glcm'
+    feature_type = 'hog'
+    #feature_type = 'vlad'
+    
+    file_path = ''
+    
+    if feature_type == 'glcm':
+        file_path = glcm_path
+    elif feature_type == 'hog':
+        file_path = hog_path
+    else: file_path = vlad_path
+    #file_path = r"E:\THESIS\ADNI_data\ADNI1_Annual_2_Yr_3T_306_WORK\INTEREST_NPY_DATA\CLAHE_NPY\CLAHE_HOG\Big_HOGs\clustered_hog.npy"
+    file_path = hog_mrmr_path
+
+    filename = result_loc + f'{model.get_title()}_pca_{feature_type}_XXX{no_fl}.txt'
     #file = open(filename, "w")
 
     dfs = []
@@ -342,8 +359,8 @@ if __name__ == "__main__":
     for i in range(1,2):
         dfs.append(classify_feats(model, file_path))
         print(f'Epoch {i} done\n')
-    
-    #save_excel(model, dfs, excel_loc)
+
+    #save_excel(model, dfs, result_loc, feature_type, no_fl)
     
     #file.close()
 
@@ -352,5 +369,9 @@ if __name__ == "__main__":
 
     print()
     df = dfs[0].sort_values(by=['%-ACCURACY'], ascending=False)
-    print(df.head)
+    print(df.head(10))
     sys.stdout.write('\a')
+
+# glcm 1-20
+# hog 140-160
+# vlad 140-160
