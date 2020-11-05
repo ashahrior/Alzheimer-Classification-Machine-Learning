@@ -39,3 +39,7 @@ The used ADNI1_Annual_2_Yr_3T dataset of size 12GB (approx) was procured from <a
 </ul>
 
 ### Screenshots
+<img src= "https://github.com/ashahrior/Alzheimer-Classification-Machine-Learning/blob/master/screenshots/hog_img.png" alt="HOG effect" width="500" height="150"> 
+<img src="https://github.com/ashahrior/Alzheimer-Classification-Machine-Learning/blob/master/screenshots/hogimg128x64.png" alt="HOG variation" width = "350" height="150">
+<img src= "https://github.com/ashahrior/Alzheimer-Classification-Machine-Learning/blob/master/screenshots/ori-vs-clahe.png" alt="CLAHE effect" width="400" height="250"> 
+<img src= "https://github.com/ashahrior/Alzheimer-Classification-Machine-Learning/blob/master/screenshots/orb.png" alt="ORB descriptors" width="100" height="150"> 
